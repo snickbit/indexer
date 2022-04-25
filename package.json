@@ -1,5 +1,5 @@
 {
-	"name": "@snickbit/indexer",
+	"name": "@remedyred/indexer",
 	"description": "CLI tool for generating index files",
 	"version": "2.0.73",
 	"license": "UNLICENSED",
