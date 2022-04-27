@@ -21,8 +21,9 @@
 		"start": "node bin/indexer.js",
 		"clean": "shx rm -rf ./bin",
 		"build": "esbuild src/index.js --bundle --outfile=bin/indexer.js --target=node12 --platform=node",
-		"watch": "yarpm build --watch",
-		"prod": "yarpm clean && yarpm build --minify"
+		"depcheck": "depcheck",
+		"watch": "yarpm run build --watch",
+		"prod": "yarpm run clean && yarpm run build --minify"
 	},
 	"dependencies": {
 		"@snickbit/node-cli": "^1.0.23",

@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 import cli from '@snickbit/node-cli'
 import {ask, confirm, fileExists, getFileJson, saveFileJson} from '@snickbit/node-utilities'
+import packageJson from '../package.json'
 import generate from './generate'
 import {DEFAULT_CONFIG_NAME, out} from './helpers'
 
 cli()
 	.name('@snickbit/indexer')
-	.version(require('../package.json').version)
+	.version(packageJson.version)
 	.banner('Generating Indexes')
 	.includeWorkingPackage()
 	.args({
