@@ -26,10 +26,10 @@
 		"prod": "yarpm run clean && yarpm run build --minify"
 	},
 	"dependencies": {
-		"@snickbit/node-cli": "^1.0.23",
-		"@snickbit/node-utilities": "^4.2.15",
-		"@snickbit/out": "^2.0.5",
-		"@snickbit/utilities": "^3.0.4",
+		"@snickbit/node-cli": "^1.0.35",
+		"@snickbit/node-utilities": "^4.2.27",
+		"@snickbit/out": "^2.0.14",
+		"@snickbit/utilities": "^3.0.11",
 		"glob": "^8.0.1",
 		"mkdirp": "^1.0.4"
 	},
