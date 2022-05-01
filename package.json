@@ -26,10 +26,10 @@
 		"prod": "npm run clean && npm run build --minify"
 	},
 	"dependencies": {
-		"@snickbit/node-cli": "^1.0.38",
-		"@snickbit/node-utilities": "^4.2.30",
-		"@snickbit/out": "^2.0.17",
-		"@snickbit/utilities": "^3.0.14",
+		"@snickbit/node-cli": "^1.0.39",
+		"@snickbit/node-utilities": "^4.2.31",
+		"@snickbit/out": "^2.0.18",
+		"@snickbit/utilities": "^3.0.15",
 		"glob": "^8.0.1",
 		"mkdirp": "^1.0.4"
 	},
