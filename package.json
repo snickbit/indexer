@@ -31,6 +31,7 @@
 		"@snickbit/out": "^2.0.18",
 		"@snickbit/utilities": "^3.0.15",
 		"glob": "^8.0.1",
+		"lilconfig": "^2.0.5",
 		"mkdirp": "^1.0.4"
 	},
 	"devDependencies": {

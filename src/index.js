@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import cli from '@snickbit/node-cli'
 import {ask, confirm, fileExists, getFileJson, saveFileJson} from '@snickbit/node-utilities'
+import {lilconfig} from 'lilconfig'
 import packageJson from '../package.json'
 import generate from './generate'
 import {DEFAULT_CONFIG_NAME, out} from './helpers'
@@ -40,6 +41,11 @@ cli()
 
 	if (argv.config && argv.config !== 'false' && fileExists(argv.config)) {
 		config.map = getFileJson(argv.config)
+	} else {
+		const result = await lilconfig('indexer').search()
+		if (result) {
+			config.map = result.config
+		}
 	}
 
 	const updated_index_map = await generate(config)
