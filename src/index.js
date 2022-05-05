@@ -39,11 +39,15 @@ cli()
 		dryRun: argv.dryRun
 	}
 
+	let configPath
+
 	if (argv.config && argv.config !== 'false' && fileExists(argv.config)) {
+		configPath = argv.config
 		config.map = getFileJson(argv.config)
 	} else {
 		const result = await lilconfig('indexer').search()
 		if (result) {
+			configPath = result.filepath
 			config.map = result.config
 		}
 	}
@@ -51,15 +55,10 @@ cli()
 	const updated_index_map = await generate(config)
 
 	if (updated_index_map && !config.dryRun && await confirm('Do you want to save the updated configuration?')) {
-		const save_path = await ask('Path to save config file?', DEFAULT_CONFIG_NAME)
+		const save_path = configPath || await ask('Path to save config file?', DEFAULT_CONFIG_NAME)
 		if (!save_path) {
 			out.fatal('No path provided')
 		}
-
-		if (fileExists(save_path) && !await confirm(`File ${save_path} already exists. Overwrite?`)) {
-			out.fatal('Aborted')
-		}
-
 		await saveFileJson(save_path, updated_index_map)
 	}
 
