@@ -54,16 +54,12 @@ cli()
 
 	let update_config = false
 
-	if (config.map) {
+	if (config.map || config.source) {
 		// validate config
-		if (Array.isArray(config.map)) {
-			if (!config.source) {
-				$out.fatal('You must specify a source directory if you are using an array config file')
-			}
-
+		if (Array.isArray(config.map) && config.source) {
 			config.map = await generate(config)
 			if (config.map) update_config = true
-		} else if (typeof config.map === 'object') {
+		} else if (typeof config.map === 'object' && !Array.isArray(config.map)) {
 			for (const [source, map] of Object.entries(config.map)) {
 				const conf: Config = {
 					source,
