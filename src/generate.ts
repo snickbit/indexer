@@ -1,22 +1,23 @@
 import {ask, confirm, progress, saveFile} from '@snickbit/node-utilities'
-import {arrayUnique, isArray} from '@snickbit/utilities'
+import {arrayUnique} from '@snickbit/utilities'
 import glob from 'glob'
 import mkdirp from 'mkdirp'
 import path from 'path'
-import {FILE_PATTERN, getExportName, indexer_banner, indexPredicate, out, posix} from './helpers'
+import {$out, FILE_PATTERN, getExportName, indexer_banner, indexPredicate, posix} from './helpers'
+import {Config, FileExport, FilesDefinition, IndexDefinition, IndexerResults} from './definitions'
 
-export default async function (config) {
-	out.verbose(config)
+export default async function (config: Config) {
+	$out.verbose(config)
 
-	let indexes_map = config.map && isArray(config.map) ? config.map : []
-	out.verbose(indexes_map)
-	const old_indexes_map = indexes_map.slice()
+	let indexes_map: IndexDefinition[] = config.map && Array.isArray(config.map) ? config.map : []
+	$out.verbose(indexes_map)
+	const old_indexes_map: IndexDefinition[] = indexes_map.slice()
 
-	if (!isArray(indexes_map)) {
+	if (!Array.isArray(indexes_map)) {
 		indexes_map = []
 	}
 
-	const removeSource = string => string.replace(new RegExp(`^.*?[\\/]?${config.source}[\\/]?`), '')
+	const removeSource = string => string.replace(new RegExp(`^.*?/?${config.source}/?`), '')
 
 	const file_glob = `${config.source}/**/${FILE_PATTERN}`
 	const dir_glob = `${config.source}/**/`
@@ -30,12 +31,13 @@ export default async function (config) {
 
 	let last_directory = null
 	let apply_to_directory = null
+	const skipped_indexes = []
 
 	for (let fp of paths) {
-		out.warn(`Processing path: ${fp}`)
+		$out.warn(`Processing path: ${fp}`)
 
 		let fd = posix.dirname(fp)
-		let indexes = indexes_map.filter(i => i.files.find(f => f.file === fp || (f.dir && fp.startsWith(f.dir)))).map(i => i.index)
+		let indexes: string[] = indexes_map.filter(i => i.files.find(f => f.file === fp || (f.dir && fp.startsWith(f.dir)))).map(i => i.index)
 
 		if (last_directory !== fd) {
 			apply_to_directory = null
@@ -43,13 +45,13 @@ export default async function (config) {
 		}
 
 		if (apply_to_directory) {
-			out.warn('Using inherited map for ' + fp)
+			$out.warn('Using inherited map for ' + fp)
 			$progress.tick()
 			continue
 		}
 
 		// get possible indexes for file
-		const index_options = []
+		const index_options: string[] = []
 		let path_parts = config.source.split('/').slice(0, -1)
 		const slice_count = fp.endsWith('/') ? -2 : -1
 		const index_ext = path.extname(fp).slice(1) === 'ts' ? 'ts' : 'js'
@@ -57,12 +59,14 @@ export default async function (config) {
 		for (let p of path_pieces) {
 			path_parts.push(p)
 			const index_path = posix.join(...path_parts, 'index.' + index_ext)
-			if (!indexes.includes(index_path)) {
+			if (!indexes.includes(index_path) && !skipped_indexes.includes(index_path)) {
 				// this file has not been configured for this index
-				out.debug(`Index "${index_path}" not configured for "${fp}"`)
+				$out.debug(`Index "${index_path}" not configured for "${fp}"`)
 				index_options.push(index_path)
+			} else if (indexes.includes(index_path)) {
+				$out.verbose(`Index "${index_path}" configured for "${fp}"`)
 			} else {
-				out.verbose(`Index "${index_path}" configured for "${fp}"`)
+				$out.debug(`Index "${index_path}" skipped`)
 			}
 		}
 
@@ -70,7 +74,7 @@ export default async function (config) {
 			// this file has not been configured for these indexes
 
 			$progress.stop()
-			let selected_indexes = []
+			let selected_indexes: string[] = []
 			if (index_options.length === 1) {
 				selected_indexes = index_options
 			} else {
@@ -82,16 +86,16 @@ export default async function (config) {
 			$progress.start()
 
 			// sort index options so that the selected indexes are first
-			const sorted_index_options = arrayUnique(selected_indexes.concat(index_options)).sort(a => selected_indexes.includes(a) ? -1 : 1)
+			const sorted_index_options: string[] = arrayUnique(selected_indexes.concat(index_options)).sort(a => selected_indexes.includes(a) ? -1 : 1)
 
 			let fp_indexes_map = []
 			for (let index_option of sorted_index_options) {
-				const merged_map = arrayUnique(fp_indexes_map.concat(indexes_map), 'index')
-				const stored_index = merged_map.findIndex(i => i.index === index_option)
-				const index = stored_index > -1 ? merged_map.splice(stored_index, 1).pop() : {index: index_option}
+				const merged_map: IndexDefinition[] = arrayUnique(fp_indexes_map.concat(indexes_map), 'index')
+				const stored_index: number = merged_map.findIndex(i => i.index === index_option)
+				const index: IndexDefinition = stored_index > -1 ? merged_map.splice(stored_index, 1).pop() : {index: index_option, files: []}
 				index.files = index.files || []
 
-				let export_type = 'skip'
+				let export_type: FileExport | 'skip-index' = 'skip'
 
 				$progress.stop()
 				if (selected_indexes.includes(index_option)) {
@@ -101,38 +105,53 @@ export default async function (config) {
 						export_name
 					} = getExportName(removeSource(fp))
 
+					const choices = [
+						{
+							title: `Default export "export {default as ${export_name}}"`,
+							value: 'default'
+						},
+						{
+							title: `Grouped export "export * as ${export_name}"`,
+							value: 'group'
+						},
+						{
+							title: `Grouped slug export "export * as ${slug}"`,
+							value: 'slug'
+						},
+						{
+							title: 'All exports individually "export *"',
+							value: 'individual'
+						},
+						{
+							title: 'Don\'t include in index',
+							value: 'skip'
+						}
+					]
+
+					if (!indexes_map.find((def: IndexDefinition) => def.index === index_option)) {
+						choices.push({
+							title: 'Skip index',
+							value: 'skip-index'
+						})
+					}
+
+
 					export_type = await ask(`What should be exported from "${basename}" in index "${index_option}"`, {
 						type: 'select',
-						choices: [
-							{
-								title: `Default export "export {default as ${export_name}}"`,
-								value: 'default'
-							},
-							{
-								title: `Grouped export "export * as ${export_name}"`,
-								value: 'group'
-							},
-							{
-								title: `Grouped slug export "export * as ${slug}"`,
-								value: 'slug'
-							},
-							{
-								title: 'All exports individually "export *"',
-								value: 'individual'
-							},
-							{
-								title: 'Don\'t include in index',
-								value: 'skip'
-							}
-						]
+						choices
 					})
+
+					if (export_type === 'skip-index') {
+						skipped_indexes.push(index_option)
+						continue
+					}
 				}
 
 				apply_to_directory = apply_to_directory === null ? await confirm(`Apply these settings to all files in ${fd}?`) : apply_to_directory
 
 				$progress.start()
 
-				const conf = {
+				const conf: FilesDefinition = {
 					export: export_type
 				}
 
@@ -155,16 +174,17 @@ export default async function (config) {
 	$progress.finish('Scan complete')
 
 	const indexes_changed = JSON.stringify(old_indexes_map) !== JSON.stringify(indexes_map)
+	const filtered_index_map: IndexDefinition[] = indexes_map.filter(im => im.index.startsWith(config.source))
 
-	const filtered_index_map = indexes_map.filter(im => im.index.startsWith(config.source))
 	$progress.start({message: 'Building indexes', total: filtered_index_map.length})
-	out.debug('Index files: ' + filtered_index_map.length)
-	const results = []
-	for (let index_map of filtered_index_map) {
-		let content = []
-		let skipped_exports = []
+	$out.debug('Index files: ' + filtered_index_map.length)
 
-		const skips = index_map.files.filter(p => p.export === 'skip')
+	const results: IndexerResults[] = []
+	for (let index_map of filtered_index_map) {
+		let content: string[] = []
+		let skipped_exports: string[] = []
+
+		const skips: FilesDefinition[] = index_map.files.filter(p => p.export === 'skip')
 		const notExcluded = p => indexPredicate(p) && !skips.find(s => s.file === p || p.startsWith(s.dir))
 
 		for (let index_file of index_map.files) {
@@ -176,12 +196,12 @@ export default async function (config) {
 			} else if (index_file.file) {
 				paths.push(index_file.file)
 			} else {
-				out.error('Missing index file or directory')
+				$out.error('Missing index file or directory')
 				continue
 			}
 
-			out.debug(`Found ${paths.length} paths for index ${index_file.file}`)
-			out.verbose({index_file, paths})
+			$out.debug(`Found ${paths.length} paths for index ${index_file.file}`)
+			$out.verbose({index_file, paths})
 
 			for (let fp of paths) {
 				if (!indexPredicate(fp)) {
@@ -201,10 +221,10 @@ export default async function (config) {
 				if (export_type === 'skip') {
 					if (!skipped_exports.includes(file_path)) {
 						skipped_exports.push(file_path)
-						out.verbose('Skipping index for path: ' + file_path)
+						$out.verbose('Skipping index for path: ' + file_path)
 					}
 				} else {
-					out.verbose(`Adding ${export_type} export to ${file_path}`)
+					$out.verbose(`Adding ${export_type} export to ${file_path}`)
 					switch (export_type) {
 						case 'slug':
 							content.push(`export * as ${slug} from '${file_path}'`)
@@ -231,7 +251,7 @@ export default async function (config) {
 				type: 'success',
 				message: `${content.length} exports written to ${index_map.index}`
 			})
-		} else if (out.isVerbose(1)) {
+		} else if ($out.isVerbose(1)) {
 			results.push({
 				type: 'warn',
 				message: `No exports to write for index: ${index_map.index}`
@@ -244,13 +264,13 @@ export default async function (config) {
 
 	if (results.length) {
 		if (config.dryRun) {
-			out.info('DRY RUN : No changes have been made to the filesystem')
+			$out.info('DRY RUN : No changes have been made to the filesystem')
 		}
 		for (let result of results) {
-			if (out[result.type]) {
-				out[result.type](result.message)
+			if ($out[result.type]) {
+				$out[result.type](result.message)
 			} else {
-				out.info(result.message)
+				$out.info(result.message)
 			}
 		}
 	}
