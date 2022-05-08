@@ -1,29 +1,21 @@
 {
 	"name": "@remedyred/indexer",
-	"description": "CLI tool for generating index files",
 	"version": "2.0.79",
+	"description": "CLI tool for generating index files",
 	"license": "UNLICENSED",
-	"preferGlobal": true,
-	"publishConfig": {
-		"registry": "https://npm.remedyred.com/",
-		"access": "public"
-	},
 	"bin": {
 		"indexer": "./bin/indexer.js"
 	},
 	"files": [
 		"bin"
 	],
-	"engines": {
-		"node": ">= 12"
-	},
 	"scripts": {
-		"start": "node bin/indexer.js",
-		"clean": "shx rm -rf ./bin",
 		"build": "esbuild src/index.js --bundle --outfile=bin/indexer.js --target=node12 --platform=node",
+		"clean": "shx rm -rf ./bin",
 		"depcheck": "depcheck",
-		"watch": "npm run build --watch",
-		"prod": "npm run clean && npm run build --minify"
+		"prod": "npm run clean && npm run build --minify",
+		"start": "node bin/indexer.js",
+		"watch": "npm run build --watch"
 	},
 	"dependencies": {
 		"@snickbit/node-cli": "^1.0.39",
@@ -37,5 +29,13 @@
 	"devDependencies": {
 		"jest": "^27.5.1",
 		"shx": "^0.3.4"
+	},
+	"engines": {
+		"node": ">= 12"
+	},
+	"preferGlobal": true,
+	"publishConfig": {
+		"access": "public",
+		"registry": "https://npm.remedyred.com/"
 	}
 }
