@@ -135,7 +135,6 @@ export default async function (config: Config) {
 						})
 					}
 
-
 					export_type = await ask(`What should be exported from "${basename}" in index "${index_option}"`, {
 						type: 'select',
 						choices
