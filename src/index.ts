@@ -56,7 +56,7 @@ cli()
 
 	if (config.map || config.source) {
 		// validate config
-		if (Array.isArray(config.map) && config.source) {
+		if (config.source || Array.isArray(config.map)) {
 			config.map = await generate(config)
 			if (config.map) update_config = true
 		} else if (typeof config.map === 'object' && !Array.isArray(config.map)) {
