@@ -57,7 +57,15 @@ export class Indexer {
 			$out.warn(`Processing path: ${fp}`)
 
 			let fd = posix.dirname(fp)
-			let indexes: string[] = this.indexes_map.filter(i => i.files.find(f => f.file === fp || (f.dir && fp.startsWith(f.dir)))).map(i => i.index)
+			let indexes: string[] = []
+
+			for (let indexItem of this.indexes_map) {
+				for (let fileItem of indexItem.files) {
+					if (fileItem.file === fp || (fileItem.dir && fp.startsWith(fileItem.dir))) {
+						indexes.push(indexItem.index)
+					}
+				}
+			}
 
 			if (last_directory !== fd) {
 				apply_to_directory = null
