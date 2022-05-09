@@ -28,6 +28,7 @@
 		"@snickbit/node-utilities": "^4.3.3",
 		"@snickbit/out": "^2.0.23",
 		"@snickbit/utilities": "^3.0.18",
+		"fast-glob": "^3.2.11",
 		"glob": "^8.0.1",
 		"lilconfig": "^2.0.5",
 		"mkdirp": "^1.0.4"

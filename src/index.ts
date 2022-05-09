@@ -3,9 +3,9 @@ import cli from '@snickbit/node-cli'
 import {ask, confirm, fileExists, getFileJson, saveFileJson} from '@snickbit/node-utilities'
 import {lilconfig} from 'lilconfig'
 import packageJson from '../package.json'
-import generate from './generate'
 import {$out, DEFAULT_CONFIG_NAME} from './helpers'
 import {Config} from './definitions'
+import {Indexer} from './Indexer'
 
 cli()
 .name('@snickbit/indexer')
@@ -56,23 +56,12 @@ cli()
 
 	if (config.map || config.source) {
 		// validate config
+		const indexer = new Indexer(config)
 		if (config.source || Array.isArray(config.map)) {
-			config.map = await generate(config)
+			config.map = await indexer.manualScan()
 			if (config.map) update_config = true
 		} else if (typeof config.map === 'object' && !Array.isArray(config.map)) {
-			for (const [source, map] of Object.entries(config.map)) {
-				const conf: Config = {
-					source,
-					map,
-					dryRun: config.dryRun
-				}
-				const result = await generate(conf)
-
-				if (result) {
-					config.map[source] = result
-					update_config = true
-				}
-			}
+			config.map = await indexer.autoScan()
 		} else {
 			$out.fatal('Invalid config file')
 		}

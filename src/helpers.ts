@@ -1,6 +1,8 @@
 import {Out} from '@snickbit/out'
 import {safeVarName, slugify} from '@snickbit/utilities'
 import path from 'path'
+// import fs from 'fs'
+// import readline from 'readline'
 
 export const DEFAULT_CONFIG_NAME = 'indexer.config.json'
 
@@ -25,5 +27,33 @@ export function getExportName(fp) {
 		filename,
 		export_name,
 		slug
+	}
+}
+
+/*async function getFirstLine(pathToFile) {
+	const readable = fs.createReadStream(pathToFile)
+	const reader = readline.createInterface({input: readable})
+	const line = await new Promise((resolve) => {
+		reader.on('line', (line) => {
+			reader.close()
+			resolve(line)
+		})
+	})
+	readable.close()
+	return line
+}*/
+
+export function makeExport(export_type, file_path, fp) {
+	const {export_name, slug} = getExportName(fp)
+	switch (export_type) {
+		case 'slug':
+			return `export * as ${slug} from '${file_path}'`
+		case 'group':
+			return `export * as ${export_name} from '${file_path}'`
+		case 'individual':
+		case 'wildcard':
+			return `export * from '${file_path}'`
+		default:
+			return `export {default as ${export_name}} from '${file_path}'`
 	}
 }
