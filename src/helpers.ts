@@ -8,7 +8,7 @@ export const DEFAULT_CONFIG_NAME = 'indexer.config.json'
 
 export const posix = path.posix
 
-export const FILE_PATTERN = '*.+(js|mjs|vue|ts)'
+export const FILE_PATTERN = '*.{js|mjs|vue|ts}'
 
 export const indexPredicate = p => !p.match(/\/index\.[a-z]+$/)
 

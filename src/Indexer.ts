@@ -1,4 +1,4 @@
-import {ask, confirm, progress, saveFile} from '@snickbit/node-utilities'
+import {ask, confirm, fileExists, progress, saveFile} from '@snickbit/node-utilities'
 import {arrayUnique} from '@snickbit/utilities'
 import glob from 'glob'
 import mkdirp from 'mkdirp'
@@ -36,8 +36,9 @@ export class Indexer {
 
 		const file_glob = `${this.config.source}/**/${FILE_PATTERN}`
 		const dir_glob = `${this.config.source}/**/`
-		const files = glob.sync(file_glob, {nosort: true})
-		const dirs = glob.sync(dir_glob, {nosort: true, ignore: this.config.source})
+		const files = await fg(file_glob, {ignore: [this.config.source]})
+		const typescript = files.find(file => file.endsWith('.ts'))
+		const dirs = await fg(dir_glob, {ignore: [this.config.source]})
 		const paths = files.concat(dirs).sort().filter(indexPredicate)
 		const $progress = progress({message: `Scanning ${paths.length} paths`, total: paths.length})
 
@@ -323,7 +324,7 @@ export class Indexer {
 			conf.type = 'wildcard'
 		}
 
-		const files = await fg(conf.source, { ignore: [conf.output] })
+		const files = await fg(conf.source, {ignore: [conf.output]})
 
 		const content = []
 		const results: IndexerResults[] = []
