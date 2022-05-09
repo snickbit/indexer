@@ -47,7 +47,7 @@ export class Indexer {
 		const skipped_indexes = []
 
 		for (let fp of paths) {
-			if (fileExists(fp)) {
+			if (!indexPredicate(fp) && fileExists(fp)) {
 				const firstLine = await getFirstLine(fp)
 				if (firstLine !== indexer_banner) {
 					continue
