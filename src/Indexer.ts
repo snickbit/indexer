@@ -226,12 +226,12 @@ export class Indexer {
 					$out.debug(`Found ${paths.length} paths for index dir ${index_file.dir}`)
 				} else if (index_file.file) {
 					paths.push(index_file.file)
+					$out.debug(`Found ${paths.length} paths for index file ${index_file.file}`)
 				} else {
 					$out.error('Missing index file or directory')
 					continue
 				}
 
-				$out.debug(`Found ${paths.length} paths for index ${index_file.file}`)
 				$out.verbose({index_file, paths})
 
 				for (let fp of paths) {
