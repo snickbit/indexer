@@ -1,8 +1,8 @@
 import {Out} from '@snickbit/out'
 import {safeVarName, slugify} from '@snickbit/utilities'
 import path from 'path'
-// import fs from 'fs'
-// import readline from 'readline'
+import fs from 'fs'
+import readline from 'readline'
 
 export const DEFAULT_CONFIG_NAME = 'indexer.config.json'
 
@@ -30,7 +30,7 @@ export function getExportName(fp) {
 	}
 }
 
-/*async function getFirstLine(pathToFile) {
+export async function getFirstLine(pathToFile) {
 	const readable = fs.createReadStream(pathToFile)
 	const reader = readline.createInterface({input: readable})
 	const line = await new Promise((resolve) => {
@@ -41,7 +41,7 @@ export function getExportName(fp) {
 	})
 	readable.close()
 	return line
-}*/
+}
 
 export function makeExport(export_type, file_path, fp) {
 	const {export_name, slug} = getExportName(fp)

@@ -3,7 +3,7 @@ import {arrayUnique} from '@snickbit/utilities'
 import glob from 'glob'
 import mkdirp from 'mkdirp'
 import path from 'path'
-import {$out, FILE_PATTERN, getExportName, indexer_banner, indexPredicate, makeExport, posix} from './helpers'
+import {$out, FILE_PATTERN, getExportName, getFirstLine, indexer_banner, indexPredicate, makeExport, posix} from './helpers'
 import {Config, FileExport, FilesDefinition, IndexDefinition, IndexerConfig, IndexerResult, IndexerResults} from './definitions'
 import fg from 'fast-glob'
 
@@ -46,6 +46,13 @@ export class Indexer {
 		const skipped_indexes = []
 
 		for (let fp of paths) {
+			if (fileExists(fp)) {
+				const firstLine = await getFirstLine(fp)
+				if (firstLine !== indexer_banner) {
+					continue
+				}
+			}
+
 			$out.warn(`Processing path: ${fp}`)
 
 			let fd = posix.dirname(fp)
