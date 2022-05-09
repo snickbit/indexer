@@ -74,7 +74,7 @@ export class Indexer {
 			const index_options: string[] = []
 			let path_parts = this.config.source.split('/').slice(0, -1)
 			const slice_count = fp.endsWith('/') ? -2 : -1
-			const index_ext = path.extname(fp).slice(1) === 'ts' ? 'ts' : 'js'
+			const index_ext = !typescript || path.extname(fp).slice(1) === 'js' ? 'js' : 'ts'
 			let path_pieces = fp.split('/').slice(0, slice_count).filter(p => !path_parts.includes(p))
 			for (let p of path_pieces) {
 				path_parts.push(p)
