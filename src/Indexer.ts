@@ -1,9 +1,8 @@
 import {ask, confirm, fileExists, progress, saveFile} from '@snickbit/node-utilities'
 import {arrayUnique} from '@snickbit/utilities'
-import glob from 'glob'
 import mkdirp from 'mkdirp'
 import path from 'path'
-import {$out, FILE_PATTERN, getExportName, getFirstLine, indexer_banner, indexPredicate, makeExport, posix} from './helpers'
+import {$out, getExportName, getFirstLine, indexer_banner, indexPredicate, makeExport, posix} from './helpers'
 import {Config, FileExport, FilesDefinition, IndexDefinition, IndexerConfig, IndexerResult, IndexerResults} from './definitions'
 import fg from 'fast-glob'
 
@@ -34,12 +33,13 @@ export class Indexer {
 			this.indexes_map = []
 		}
 
-		const file_glob = `${this.config.source}/**/${FILE_PATTERN}`
-		const dir_glob = `${this.config.source}/**/`
-		const files = await fg(file_glob, {ignore: [this.config.source]})
-		const typescript = files.find(file => file.endsWith('.ts'))
-		const dirs = await fg(dir_glob, {ignore: [this.config.source]})
-		const paths = files.concat(dirs).sort().filter(indexPredicate)
+		const file_glob = `${this.config.source}/**/*`
+		const opts: { ignore?: string[], onlyFiles: boolean } = {onlyFiles: false}
+		if (this.config.source) {
+			opts.ignore = [this.config.source]
+		}
+		const paths = (await fg(file_glob, opts)).sort().filter(indexPredicate)
+		const typescript = paths.find(file => file.endsWith('.ts'))
 		const $progress = progress({message: `Scanning ${paths.length} paths`, total: paths.length})
 
 		let last_directory = null
@@ -213,9 +213,9 @@ export class Indexer {
 			for (let index_file of index_map.files) {
 				const paths = []
 				if (index_file.dir) {
-					const files = glob.sync(`${index_file.dir}/${FILE_PATTERN}`, {nosort: true, ignore: index_map.files.filter(f => f.file !== index_file.file).map(f => f.file)})
-					const dirs = glob.sync(`${index_file.dir}/*/`, {nosort: true, ignore: index_file.dir})
-					paths.push(...files.concat(dirs).filter(notExcluded).sort())
+					const files = await fg(`${index_file.dir}/*`, {onlyFiles: false, ignore: index_map.files.filter(f => f.file !== index_file.file).map(f => f.file)})
+					paths.push(...files.filter(notExcluded).sort())
+					$out.debug(`Found ${paths.length} paths for index dir ${index_file.dir}`)
 				} else if (index_file.file) {
 					paths.push(index_file.file)
 				} else {
