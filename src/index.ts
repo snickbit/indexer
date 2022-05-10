@@ -4,8 +4,9 @@ import {ask, confirm, fileExists, getFileJson, saveFileJson} from '@snickbit/nod
 import {lilconfig} from 'lilconfig'
 import packageJson from '../package.json'
 import {$out, DEFAULT_CONFIG_NAME} from './helpers'
-import {Config} from './definitions'
+import {Config, IndexerConfig} from './definitions'
 import {Indexer} from './Indexer'
+import {objectExcept} from '@snickbit/utilities'
 
 cli()
 .name('@snickbit/indexer')
@@ -61,7 +62,16 @@ cli()
 			config.map = await indexer.manualScan()
 			if (config.map) update_config = true
 		} else if (typeof config.map === 'object' && !Array.isArray(config.map)) {
-			config.map = await indexer.autoScan()
+			const conf = config.map as IndexerConfig
+			if (conf.indexes) {
+				const root: Omit<IndexerConfig, 'indexes'> = objectExcept(conf, ['indexes'])
+				for (let key in conf.indexes) {
+					conf.indexes[key] = await indexer.autoScan({...conf.indexes[key], ...root}) as IndexerConfig
+				}
+				config.map = conf
+			} else {
+				config.map = await indexer.autoScan()
+			}
 		} else {
 			$out.fatal('Invalid config file')
 		}

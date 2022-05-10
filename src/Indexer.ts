@@ -284,8 +284,8 @@ export class Indexer {
 		return this.results(results)
 	}
 
-	async autoScan(): Promise<IndexerResult> {
-		let conf = (this.config.map || {}) as IndexerConfig
+	async autoScan(config?: IndexerConfig): Promise<IndexerResult> {
+		let conf = (config || this.config.map || {}) as IndexerConfig
 
 		if (!conf) {
 			conf = {
@@ -332,7 +332,13 @@ export class Indexer {
 			conf.type = 'wildcard'
 		}
 
-		const files = await fg(conf.source, {ignore: [conf.output]})
+		const ignore = [conf.output]
+
+		if (conf.ignore) {
+			ignore.push(...conf.ignore)
+		}
+
+		const files = await fg(conf.source, {ignore})
 
 		const content = []
 		const results: IndexerResults[] = []

@@ -21,14 +21,13 @@ export interface FilesDefinition {
 export type FileExport = 'default' | 'group' | 'slug' | 'individual' | 'wildcard' | 'skip'
 
 export interface IndexerConfig {
-	source: string
+	source?: string | string[]
 	output?: string
-	rootOnly?: boolean
 	type?: 'auto' | 'manual' | 'default' | 'group' | 'slug' | 'individual' | 'wildcard' | 'skip'
 	include?: string[]
-	exclude?: string[]
-	map?: IndexerMap
+	ignore?: string[]
 	typescript?: boolean
+	indexes?: IndexerConfig[]
 }
 
 export interface IndexerResults {
