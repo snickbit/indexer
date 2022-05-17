@@ -362,9 +362,7 @@ export class Indexer {
 
 
 		if (conf.recursive) {
-			if (!indexes[source].length) {
-				indexes[source] = await fg(source + '/*', {onlyDirectories: true})
-			}
+			indexes[source].push(...(await fg(source + '/*', {onlyDirectories: true}) || []))
 
 			// loop indexes and write each index
 			const ext = path.extname(conf.output)
