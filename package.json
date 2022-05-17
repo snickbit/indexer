@@ -14,10 +14,10 @@
 		"build:meta": "npm run build --metafile",
 		"clean": "shx rm -rf ./bin",
 		"depcheck": "depcheck",
-		"dev": "npm run build -- --sourcemap",
-		"prod": "npm run build -- --minify",
+		"dev": "pnpm run build --sourcemap",
+		"prod": "pnpm run build --minify",
 		"start": "node bin/indexer.js",
-		"watch": "npm run dev -- --watch"
+		"watch": "pnpm run dev --watch"
 	},
 	"jest": {
 		"preset": "ts-jest",
