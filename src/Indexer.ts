@@ -48,8 +48,8 @@ export class Indexer {
 
 		for (let fp of paths) {
 			if (!notAnIndexPredicate(fp) || !fileExists(fp) || (await getFirstLine(fp) === indexer_banner)) {
-					continue
-				}
+				continue
+			}
 
 			$out.warn(`Processing path: ${fp}`)
 
@@ -335,16 +335,62 @@ export class Indexer {
 			ignore.push(...conf.ignore)
 		}
 
-		const files = await fg(conf.source, {ignore})
-
-		const content = []
+		const content: string[] = []
 		const results: IndexerResults[] = []
 
 		const source = posix.dirname(conf.output)
+		const indexes: Record<string, string[]> = {
+			[source]: []
+		}
 
+		const files = await fg(conf.source, {ignore, onlyFiles: !conf.recursive})
 		for (let file of files) {
-			file = file.replace(/\.[jt]s$/, '')
-			content.push(makeExport(conf.type, './' + posix.relative(source, file), file))
+			if (conf.recursive) {
+				if (!notAnIndexPredicate(file) || !fileExists(file) || (await getFirstLine(file) === indexer_banner)) {
+					continue
+				}
+				const dirname = posix.dirname(file)
+				if (!indexes[dirname]) {
+					indexes[dirname] = []
+				}
+
+				indexes[dirname].push(file.replace(/\.[jt]s$/, ''))
+			} else {
+				content.push(makeExport(conf.type, './' + posix.relative(source, file), file))
+			}
+		}
+
+
+		if (conf.recursive) {
+			if (!indexes[source].length) {
+				indexes[source] = await fg(source + '/*', {onlyDirectories: true})
+			}
+
+			// loop indexes and write each index
+			const ext = path.extname(conf.output)
+			for (let [dir, files] of Object.entries(indexes)) {
+				const indexFile = posix.join(dir, 'index' + ext)
+				let indexContent: string[] = []
+				for (let file of files) {
+					indexContent.push(makeExport(conf.type, posix.relative(posix.resolve(indexFile), posix.resolve(file)).replace(/^\.\./, '.'), file))
+				}
+
+				if (indexContent.length > 0) {
+					if (!this.config.dryRun) {
+						mkdirp.sync(path.dirname(conf.output))
+						saveFile(indexFile, indexer_banner + '\n\n' + indexContent.join('\n') + '\n')
+					}
+					results.push({
+						type: 'success',
+						message: `${indexContent.length} exports written to ${indexFile}`
+					})
+				} else if ($out.isVerbose(1)) {
+					results.push({
+						type: 'warn',
+						message: `No exports to write for index: ${indexFile}`
+					})
+				}
+			}
 		}
 
 		if (content.length > 0) {

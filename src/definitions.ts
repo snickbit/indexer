@@ -28,6 +28,7 @@ export interface IndexerConfig {
 	ignore?: string[]
 	typescript?: boolean
 	indexes?: IndexerConfig[]
+	recursive?: boolean
 }
 
 export interface IndexerResults {
