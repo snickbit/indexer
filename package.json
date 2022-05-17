@@ -24,10 +24,10 @@
 		"testEnvironment": "node"
 	},
 	"dependencies": {
-		"@snickbit/node-cli": "^1.0.44",
-		"@snickbit/node-utilities": "^4.3.3",
-		"@snickbit/out": "^2.0.23",
-		"@snickbit/utilities": "^3.0.18",
+		"@snickbit/node-cli": "^1.0.46",
+		"@snickbit/node-utilities": "^4.3.4",
+		"@snickbit/out": "^2.0.25",
+		"@snickbit/utilities": "^3.0.19",
 		"fast-glob": "^3.2.11",
 		"lilconfig": "^2.0.5",
 		"mkdirp": "^1.0.4"
