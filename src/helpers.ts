@@ -46,7 +46,7 @@ export async function getFirstLine(pathToFile) {
 export function makeExport(export_type, file_path, fp) {
 	const {export_name, slug} = getExportName(fp)
 
-	file_path = file_path.replace(/\/index$/, '').replace(/\.[jt]s$/, '')
+	file_path = file_path.replace(/\.[jt]s$/, '').replace(/\/index$/, '')
 
 	switch (export_type) {
 		case 'slug':
