@@ -2,7 +2,7 @@ import {ask, confirm, fileExists, progress, saveFile} from '@snickbit/node-utili
 import {arrayUnique} from '@snickbit/utilities'
 import mkdirp from 'mkdirp'
 import path from 'path'
-import {$out, getExportName, getFirstLine, indexer_banner, indexPredicate, makeExport, posix} from './helpers'
+import {$out, getExportName, getFirstLine, indexer_banner, makeExport, notAnIndexPredicate, posix} from './helpers'
 import {Config, FileExport, FilesDefinition, IndexDefinition, IndexerConfig, IndexerResult, IndexerResults} from './definitions'
 import fg from 'fast-glob'
 
@@ -38,7 +38,7 @@ export class Indexer {
 		if (this.config.source) {
 			opts.ignore = [this.config.source]
 		}
-		const paths = (await fg(file_glob, opts)).sort().filter(indexPredicate)
+		const paths = (await fg(file_glob, opts)).sort().filter(notAnIndexPredicate)
 		const typescript = paths.find(file => file.endsWith('.ts'))
 		const $progress = progress({message: `Scanning ${paths.length} paths`, total: paths.length})
 
@@ -47,12 +47,9 @@ export class Indexer {
 		const skipped_indexes = []
 
 		for (let fp of paths) {
-			if (!indexPredicate(fp) && fileExists(fp)) {
-				const firstLine = await getFirstLine(fp)
-				if (firstLine !== indexer_banner) {
+			if (!notAnIndexPredicate(fp) || !fileExists(fp) || (await getFirstLine(fp) === indexer_banner)) {
 					continue
 				}
-			}
 
 			$out.warn(`Processing path: ${fp}`)
 
@@ -216,7 +213,7 @@ export class Indexer {
 			let skipped_exports: string[] = []
 
 			const skips: FilesDefinition[] = index_map.files.filter(p => p.export === 'skip')
-			const notExcluded = p => indexPredicate(p) && !skips.find(s => s.file === p || p.startsWith(s.dir))
+			const notExcluded = p => notAnIndexPredicate(p) && !skips.find(s => s.file === p || p.startsWith(s.dir))
 
 			for (let index_file of index_map.files) {
 				const paths = []
@@ -235,7 +232,7 @@ export class Indexer {
 				$out.verbose({index_file, paths})
 
 				for (let fp of paths) {
-					if (!indexPredicate(fp)) {
+					if (!notAnIndexPredicate(fp)) {
 						$progress.tick()
 						continue
 					}
