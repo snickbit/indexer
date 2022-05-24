@@ -1,5 +1,5 @@
 import {Out} from '@snickbit/out'
-import {safeVarName, slugify} from '@snickbit/utilities'
+import {camelCase, safeVarName, slugify} from '@snickbit/utilities'
 import path from 'path'
 import fs from 'fs'
 import readline from 'readline'
@@ -20,8 +20,11 @@ export function getExportName(fp) {
 	const dirname = path.dirname(fp)
 	const basename = path.basename(fp)
 	const filename = path.basename(fp, path.extname(fp))
-	const export_name = safeVarName(filename)
 	const slug = safeVarName(slugify(path.join(dirname, filename)))
+	let export_name = safeVarName(filename)
+	const first_lowercase_index = export_name.search(/[a-z]/)
+	export_name = export_name.slice(0, first_lowercase_index) + camelCase(export_name.slice(first_lowercase_index))
+
 	return {
 		basename,
 		filename,
