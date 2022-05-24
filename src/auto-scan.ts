@@ -138,7 +138,7 @@ async function generateIndexes(appConfig: AppConfig, config?: IndexerConfig): Pr
 			if (indexContent.length > 0) {
 				if (!appConfig.dryRun) {
 					mkdirp.sync(path.dirname(conf.output))
-					saveFile(indexFile, indexer_banner + '\n\n' + indexContent.join('\n') + '\n')
+					saveFile(indexFile, indexer_banner + '\n\n' + indexContent.sort().join('\n') + '\n')
 				}
 				results.push({
 					type: 'success',
@@ -156,7 +156,7 @@ async function generateIndexes(appConfig: AppConfig, config?: IndexerConfig): Pr
 	if (content.length > 0) {
 		if (!appConfig.dryRun) {
 			mkdirp.sync(path.dirname(conf.output))
-			saveFile(conf.output, indexer_banner + '\n\n' + content.join('\n') + '\n')
+			saveFile(conf.output, indexer_banner + '\n\n' + content.sort().join('\n') + '\n')
 		}
 		results.push({
 			type: 'success',
