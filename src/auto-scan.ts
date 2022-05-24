@@ -4,8 +4,7 @@ import path from 'path'
 import {$out, getFirstLine, indexer_banner, makeExport, notAnIndexPredicate, posix} from './helpers'
 import {AppConfig, IndexerConfig, IndexerResult, IndexerResults} from './definitions'
 import fg from 'fast-glob'
-import {objectExcept} from '@snickbit/utilities'
-
+import {JSONPrettify, objectExcept} from '@snickbit/utilities'
 
 export default async function (config: AppConfig): Promise<IndexerResult> {
 	const conf = config.indexer as IndexerConfig
@@ -87,6 +86,13 @@ async function generateIndexes(appConfig: AppConfig, config?: IndexerConfig): Pr
 	}
 
 	const files = await fg(conf.source, {ignore, onlyFiles: !conf.recursive})
+	if (!files.length) {
+		results.push({
+			type: 'warn',
+			message: 'No files found matching source\n' + JSONPrettify(conf.source)
+		})
+	}
+
 	for (let file of files) {
 		if (conf.recursive) {
 			if (!notAnIndexPredicate(file) || !fileExists(file) || (await getFirstLine(file) === indexer_banner)) {
@@ -102,7 +108,6 @@ async function generateIndexes(appConfig: AppConfig, config?: IndexerConfig): Pr
 			content.push(makeExport(conf.type, './' + posix.relative(source, file), file))
 		}
 	}
-
 
 	if (conf.recursive) {
 		indexes[source].push(...(await fg(source + '/*', {onlyDirectories: true}) || []))
