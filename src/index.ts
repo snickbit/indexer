@@ -4,9 +4,9 @@ import {ask, confirm, fileExists, getFileJson, saveFileJson} from '@snickbit/nod
 import {lilconfig} from 'lilconfig'
 import packageJson from '../package.json'
 import {$out, DEFAULT_CONFIG_NAME} from './helpers'
-import {Config, IndexerConfig} from './definitions'
-import {Indexer} from './Indexer'
-import {objectExcept} from '@snickbit/utilities'
+import {AppConfig} from './definitions'
+import autoScan from './auto-scan'
+import manualScan from './manual-scan'
 
 cli()
 .name('@snickbit/indexer')
@@ -35,7 +35,7 @@ cli()
 	}
 })
 .run().then(async argv => {
-	let config: Config = {
+	let config: AppConfig = {
 		source: argv.source,
 		dryRun: argv.dryRun
 	}
@@ -44,39 +44,26 @@ cli()
 
 	if (argv.config && argv.config !== 'false' && fileExists(argv.config)) {
 		configPath = argv.config
-		config.map = getFileJson(argv.config)
+		config.indexer = getFileJson(argv.config)
 	} else {
 		const result = await lilconfig('indexer').search()
 		if (result) {
 			configPath = result.filepath
-			config.map = result.config
+			config.indexer = result.config
 		}
 	}
 
 	let update_config = false
 
-	if (config.map || config.source) {
-		// validate config
-		const indexer = new Indexer(config)
-		if (config.source || Array.isArray(config.map)) {
-			config.map = await indexer.manualScan()
-			if (config.map) update_config = true
-		} else if (typeof config.map === 'object' && !Array.isArray(config.map)) {
-			const conf = config.map as IndexerConfig
-			if (conf.indexes) {
-				const root: Omit<IndexerConfig, 'indexes'> = objectExcept(conf, ['indexes'])
-				for (let key in conf.indexes) {
-					conf.indexes[key] = await indexer.autoScan({...conf.indexes[key], ...root}) as IndexerConfig
-				}
-				config.map = conf
-			} else {
-				config.map = await indexer.autoScan()
-			}
+	if (config.indexer || config.source) {
+		// Use deprecated manual scan if config is an array
+		if (config.indexer && Array.isArray(config.indexer)) {
+			config.indexer = await manualScan(config)
 		} else {
-			$out.fatal('Invalid config file')
+			config.indexer = await autoScan(config)
 		}
 	} else {
-		$out.fatal('No configuration found')
+		$out.fatal('No configuration found and no source directory specified')
 	}
 
 	if (update_config && !config.dryRun && await confirm('Do you want to save the updated configuration?')) {
@@ -84,7 +71,7 @@ cli()
 		if (!save_path) {
 			$out.fatal('No path provided')
 		}
-		await saveFileJson(save_path, config.map)
+		await saveFileJson(save_path, config.indexer)
 	}
 
 	$out.done('Done')

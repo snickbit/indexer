@@ -1,8 +1,8 @@
-export interface Config {
+export interface AppConfig {
 	source: string
 	dryRun: boolean
 	rootOnly?: boolean
-	map?: IndexerMap | IndexerConfig
+	indexer?: IndexerMap | IndexerConfig
 }
 
 export type IndexerMap = IndexDefinition[] | Record<string, IndexDefinition[]>
