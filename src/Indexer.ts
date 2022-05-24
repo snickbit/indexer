@@ -22,7 +22,12 @@ export class Indexer {
 		this.removeSource = string => string.replace(new RegExp(`^.*?/?${source}/?`), '')
 	}
 
+	/**
+	 * @deprecated
+	 */
 	async manualScan(): Promise<IndexerResult> {
+		$out.force.warn('Your configuration is setup to use the manual scan method. This method is deprecated and will be removed in a future release.')
+
 		$out.verbose(this.config)
 
 		this.indexes_map = this.config.map && Array.isArray(this.config.map) ? this.config.map : []
