@@ -47,6 +47,7 @@ export function makeExport(export_type, file_path, fp) {
 	const {export_name, slug} = getExportName(fp)
 
 	file_path = file_path.replace(/\.[jt]s$/, '').replace(/\/index$/, '')
+	if (file_path === '.') file_path = './index'
 
 	switch (export_type) {
 		case 'slug':
