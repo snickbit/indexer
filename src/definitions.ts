@@ -23,7 +23,7 @@ export type FileExport = 'default' | 'group' | 'slug' | 'individual' | 'wildcard
 export interface IndexerConfig {
 	source?: string | string[]
 	output?: string
-	type?: 'auto' | 'manual' | 'default' | 'group' | 'slug' | 'individual' | 'wildcard' | 'skip'
+	type?: 'default' | 'group' | 'slug' | 'individual' | 'wildcard' | 'skip'
 	include?: string[]
 	ignore?: string[]
 	typescript?: boolean
