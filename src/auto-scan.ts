@@ -117,7 +117,8 @@ async function generateIndexes(appConfig: AppConfig, config?: IndexerConfig): Pr
 
 			indexes[dirname].push(file.replace(/\.[jt]s$/, ''))
 		} else {
-			content.push(makeExport(conf.type, './' + posix.relative(source, file), file))
+			const type = conf.overrides && conf.overrides[file] ? conf.overrides[file] : conf.type
+			content.push(makeExport(type, './' + posix.relative(source, file), file))
 		}
 	}
 
@@ -130,7 +131,8 @@ async function generateIndexes(appConfig: AppConfig, config?: IndexerConfig): Pr
 			const indexFile = posix.join(dir, 'index' + ext)
 			let indexContent: string[] = []
 			for (let file of files) {
-				indexContent.push(makeExport(conf.type, posix.relative(posix.resolve(indexFile), posix.resolve(file)).replace(/^\.\./, '.'), file))
+				const type = conf.overrides && conf.overrides[file] ? conf.overrides[file] : conf.type
+				indexContent.push(makeExport(type, posix.relative(posix.resolve(indexFile), posix.resolve(file)).replace(/^\.\./, '.'), file))
 			}
 
 			if (indexContent.length > 0) {

@@ -29,6 +29,7 @@ export interface IndexerConfig {
 	typescript?: boolean
 	indexes?: IndexerConfig[]
 	recursive?: boolean
+	overrides?: Record<string, FileExport>
 }
 
 export interface IndexerResults {
