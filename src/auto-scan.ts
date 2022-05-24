@@ -11,7 +11,7 @@ export default async function (config: AppConfig): Promise<IndexerResult> {
 	if (conf.indexes) {
 		const root: Omit<IndexerConfig, 'indexes'> = objectExcept(conf, ['indexes'])
 		for (let key in conf.indexes) {
-			conf.indexes[key] = await generateIndexes(config, {...conf.indexes[key], ...root}) as IndexerConfig
+			conf.indexes[key] = await generateIndexes(config, {...root, ...conf.indexes[key]}) as IndexerConfig
 		}
 		config.indexer = conf
 	} else {
