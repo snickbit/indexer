@@ -1,7 +1,7 @@
 import {ask, confirm, fileExists, saveFile} from '@snickbit/node-utilities'
 import mkdirp from 'mkdirp'
 import path from 'path'
-import {$out, getFirstLine, indexer_banner, makeExport, notAnIndexPredicate, posix} from './helpers'
+import {$out, getFirstLine, indexer_banner, makeExport, posix} from './helpers'
 import {AppConfig, IndexerConfig, IndexerResult, IndexerResults} from './definitions'
 import fg from 'fast-glob'
 import {JSONPrettify, objectExcept} from '@snickbit/utilities'
@@ -21,10 +21,21 @@ export default async function (config: AppConfig): Promise<IndexerResult> {
 	return config.indexer
 }
 
+let _outputs: string[]
+
+function getOutputs(indexerConfig: IndexerConfig) {
+	if (!_outputs) {
+		const indexes = indexerConfig.indexes || [indexerConfig]
+
+		_outputs = indexes.map(index => index.output)
+	}
+	return _outputs
+}
 
 async function generateIndexes(appConfig: AppConfig, config?: IndexerConfig): Promise<IndexerResult> {
 	let indexer_config: IndexerConfig
 	let conf = (config || appConfig.indexer || {}) as IndexerConfig
+	const outputs = getOutputs(appConfig)
 
 	if (!conf) {
 		conf = {
@@ -94,10 +105,11 @@ async function generateIndexes(appConfig: AppConfig, config?: IndexerConfig): Pr
 	}
 
 	for (let file of files) {
+		if (file === conf.output || !fileExists(file) || (outputs.includes(file) && await getFirstLine(file) === indexer_banner)) {
+			continue
+		}
+
 		if (conf.recursive) {
-			if (!notAnIndexPredicate(file) || !fileExists(file) || (await getFirstLine(file) === indexer_banner)) {
-				continue
-			}
 			const dirname = posix.dirname(file)
 			if (!indexes[dirname]) {
 				indexes[dirname] = []
