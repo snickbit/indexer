@@ -1,6 +1,5 @@
-import {ask, confirm, fileExists, progress, saveFile} from '@snickbit/node-utilities'
+import {ask, confirm, fileExists, mkdir, progress, saveFile} from '@snickbit/node-utilities'
 import {arrayUnique} from '@snickbit/utilities'
-import mkdirp from 'mkdirp'
 import path from 'path'
 import {$out, getExportName, getFirstLine, indexer_banner, makeExport, notAnIndexPredicate, posix} from './helpers'
 import {AppConfig, FileExport, FilesDefinition, IndexDefinition, IndexerConfig, IndexerResult, IndexerResults} from './definitions'
@@ -249,7 +248,7 @@ export default async function (config: AppConfig): Promise<IndexerResult> {
 
 		if (content.length > 0) {
 			if (!config.dryRun) {
-				mkdirp.sync(path.dirname(index_map.index))
+				mkdir(path.dirname(index_map.index), {recursive: true})
 				saveFile(index_map.index, indexer_banner + '\n\n' + content.join('\n') + '\n')
 			}
 			results.push({
