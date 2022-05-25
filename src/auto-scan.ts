@@ -35,7 +35,7 @@ function getOutputs(indexerConfig: IndexerConfig) {
 async function generateIndexes(appConfig: AppConfig, config?: IndexerConfig): Promise<IndexerResult> {
 	let indexer_config: IndexerConfig
 	let conf = (config || appConfig.indexer || {}) as IndexerConfig
-	const outputs = getOutputs(appConfig)
+	getOutputs(appConfig)
 
 	if (!conf) {
 		conf = {
@@ -105,7 +105,7 @@ async function generateIndexes(appConfig: AppConfig, config?: IndexerConfig): Pr
 	}
 
 	for (let file of files) {
-		if (file === conf.output || !fileExists(file) || (outputs.includes(file) && await getFirstLine(file) === indexer_banner)) {
+		if (await shouldIgnore(conf, file)) {
 			continue
 		}
 
@@ -231,4 +231,16 @@ function makeExportName(name: string, casing: IndexerConfig['casing'] = 'keep'):
 		default: // case keep
 			return safeVarName(name).replace(/_/g, '')
 	}
+}
+
+async function shouldIgnore(conf: IndexerConfig, file: string): Promise<boolean> {
+	if (file === conf.output) return true
+	if (!fileExists(file)) return true
+	if (isArray(conf.ignore) && conf.ignore.some(ignore => ignore && picomatch(ignore)(file))) return true
+
+	if (getOutputs(conf).some(ignore => ignore && picomatch(ignore)(file)) || file.match(/\/index\.[a-z]+$/)) {
+		return await getFirstLine(file) === indexer_banner
+	}
+
+	return false
 }
