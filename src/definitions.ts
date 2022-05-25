@@ -24,6 +24,7 @@ export interface IndexerConfig {
 	source?: string | string[]
 	output?: string
 	type?: 'default' | 'group' | 'slug' | 'individual' | 'wildcard' | 'skip'
+	casing?: 'keep' | 'camel' | 'pascal' | 'kebab' | 'snake' | 'upper' | 'lower'
 	include?: string[]
 	ignore?: string[]
 	typescript?: boolean

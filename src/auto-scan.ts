@@ -1,9 +1,9 @@
 import {ask, confirm, fileExists, mkdir, saveFile} from '@snickbit/node-utilities'
 import path from 'path'
-import {$out, getFirstLine, indexer_banner, makeExport, posix} from './helpers'
+import {$out, getFirstLine, indexer_banner, posix} from './helpers'
 import {AppConfig, IndexerConfig, IndexerResult, IndexerResults} from './definitions'
 import fg from 'fast-glob'
-import {JSONPrettify, objectExcept, objectFindKey} from '@snickbit/utilities'
+import {camelCase, isArray, JSONPrettify, kebabCase, objectExcept, objectFindKey, safeVarName, slugify, snakeCase} from '@snickbit/utilities'
 import picomatch from 'picomatch'
 
 export default async function (config: AppConfig): Promise<IndexerResult> {
@@ -117,9 +117,7 @@ async function generateIndexes(appConfig: AppConfig, config?: IndexerConfig): Pr
 
 			indexes[dirname].push(file.replace(/\.[jt]s$/, ''))
 		} else {
-			const override = conf.overrides && objectFindKey(conf.overrides, (key) => picomatch(key)(file))
-			const type = override ? conf.overrides[override] : conf.type
-			content.push(makeExport(type, './' + posix.relative(source, file), file))
+			content.push(makeExport(conf, source, file))
 		}
 	}
 
@@ -132,8 +130,7 @@ async function generateIndexes(appConfig: AppConfig, config?: IndexerConfig): Pr
 			const indexFile = posix.join(dir, 'index' + ext)
 			let indexContent: string[] = []
 			for (let file of files) {
-				const type = conf.overrides && conf.overrides[file] ? conf.overrides[file] : conf.type
-				indexContent.push(makeExport(type, posix.relative(posix.resolve(indexFile), posix.resolve(file)).replace(/^\.\./, '.'), file))
+				indexContent.push(makeExport(conf, indexFile, file))
 			}
 
 			if (indexContent.length > 0) {
@@ -184,4 +181,54 @@ async function generateIndexes(appConfig: AppConfig, config?: IndexerConfig): Pr
 	}
 
 	return indexer_config
+}
+
+
+function makeExport(conf: IndexerConfig, source: string, file: string) {
+	const override = conf.overrides && objectFindKey(conf.overrides, (key) => picomatch(key)(file))
+	const export_type = override ? conf.overrides[override] : conf.type
+
+	const resolvedIndex = posix.resolve(source)
+	const resolvedFile = posix.resolve(file)
+	let file_path = posix.relative(resolvedIndex, resolvedFile).replace(/^\.\./, '.').replace(/\.[jt]s$/, '').replace(/\/index$/, '')
+	if (file_path === '.') file_path = './index'
+
+	const dirname = path.dirname(file)
+	const filename = path.basename(file, path.extname(file))
+
+	if (export_type === 'slug') {
+		const slug = safeVarName(slugify(path.join(dirname, filename)))
+		return `export * as ${slug} from '${file_path}'`
+	} else {
+		let export_name = makeExportName(filename, conf.casing)
+
+		switch (export_type) {
+			case 'group':
+				return `export * as ${export_name} from '${file_path}'`
+			case 'individual':
+			case 'wildcard':
+				return `export * from '${file_path}'`
+			default:
+				return `export {default as ${export_name}} from '${file_path}'`
+		}
+	}
+}
+
+function makeExportName(name: string, casing: IndexerConfig['casing'] = 'keep'): string {
+	switch (casing) {
+		case 'camel':
+			return camelCase(name)
+		case 'pascal':
+			return name.charAt(0).toUpperCase() + camelCase(name.slice(1))
+		case 'kebab':
+			return kebabCase(name)
+		case 'snake':
+			return snakeCase(name)
+		case 'upper':
+			return name.toUpperCase()
+		case 'lower':
+			return name.toLowerCase()
+		default: // case keep
+			return safeVarName(name).replace(/_/g, '')
+	}
 }
