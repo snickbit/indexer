@@ -30,7 +30,8 @@
 		"@snickbit/utilities": "^3.0.20",
 		"fast-glob": "^3.2.11",
 		"lilconfig": "^2.0.5",
-		"mkdirp": "^1.0.4"
+		"mkdirp": "^1.0.4",
+		"picomatch": "^2.3.1"
 	},
 	"devDependencies": {
 		"@types/node": "^17.0.34",

@@ -4,7 +4,8 @@ import path from 'path'
 import {$out, getFirstLine, indexer_banner, makeExport, posix} from './helpers'
 import {AppConfig, IndexerConfig, IndexerResult, IndexerResults} from './definitions'
 import fg from 'fast-glob'
-import {JSONPrettify, objectExcept} from '@snickbit/utilities'
+import {JSONPrettify, objectExcept, objectFindKey} from '@snickbit/utilities'
+import picomatch from 'picomatch'
 
 export default async function (config: AppConfig): Promise<IndexerResult> {
 	const conf = config.indexer as IndexerConfig
@@ -117,7 +118,8 @@ async function generateIndexes(appConfig: AppConfig, config?: IndexerConfig): Pr
 
 			indexes[dirname].push(file.replace(/\.[jt]s$/, ''))
 		} else {
-			const type = conf.overrides && conf.overrides[file] ? conf.overrides[file] : conf.type
+			const override = conf.overrides && objectFindKey(conf.overrides, (key) => picomatch(key)(file))
+			const type = override ? conf.overrides[override] : conf.type
 			content.push(makeExport(type, './' + posix.relative(source, file), file))
 		}
 	}
