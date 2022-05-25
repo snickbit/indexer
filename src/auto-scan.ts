@@ -190,7 +190,7 @@ function makeExport(conf: IndexerConfig, source: string, file: string) {
 
 	const resolvedIndex = posix.resolve(source)
 	const resolvedFile = posix.resolve(file)
-	let file_path = posix.relative(resolvedIndex, resolvedFile).replace(/^\.\./, '.').replace(/\.[jt]s$/, '').replace(/\/index$/, '')
+	let file_path = posix.relative(resolvedIndex, resolvedFile).replace(/^(\.\.)?\/?/, './').replace(/\.[jt]s$/, '').replace(/\/index$/, '')
 	if (file_path === '.') file_path = './index'
 
 	const dirname = path.dirname(file)
