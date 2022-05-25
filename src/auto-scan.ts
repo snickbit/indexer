@@ -1,5 +1,4 @@
-import {ask, confirm, fileExists, saveFile} from '@snickbit/node-utilities'
-import mkdirp from 'mkdirp'
+import {ask, confirm, fileExists, mkdir, saveFile} from '@snickbit/node-utilities'
 import path from 'path'
 import {$out, getFirstLine, indexer_banner, makeExport, posix} from './helpers'
 import {AppConfig, IndexerConfig, IndexerResult, IndexerResults} from './definitions'
@@ -139,7 +138,7 @@ async function generateIndexes(appConfig: AppConfig, config?: IndexerConfig): Pr
 
 			if (indexContent.length > 0) {
 				if (!appConfig.dryRun) {
-					mkdirp.sync(path.dirname(conf.output))
+					mkdir(path.dirname(indexFile), {recursive: true})
 					saveFile(indexFile, indexer_banner + '\n\n' + indexContent.sort().join('\n') + '\n')
 				}
 				results.push({
@@ -157,7 +156,7 @@ async function generateIndexes(appConfig: AppConfig, config?: IndexerConfig): Pr
 
 	if (content.length > 0) {
 		if (!appConfig.dryRun) {
-			mkdirp.sync(path.dirname(conf.output))
+			mkdir(path.dirname(conf.output), {recursive: true})
 			saveFile(conf.output, indexer_banner + '\n\n' + content.sort().join('\n') + '\n')
 		}
 		results.push({
