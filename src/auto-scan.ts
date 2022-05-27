@@ -238,7 +238,7 @@ async function shouldIgnore(conf: IndexerConfig, file: string): Promise<boolean>
 	if (!fileExists(file)) return true
 	if (isArray(conf.ignore) && conf.ignore.some(ignore => ignore && picomatch(ignore)(file))) return true
 
-	if (getOutputs(conf).some(ignore => ignore && picomatch(ignore)(file)) || file.match(/\/index\.[a-z]+$/)) {
+	if (getOutputs(conf).some(ignore => ignore && picomatch(ignore)(file)) || /\/index\.[a-z]+$/.test(file)) {
 		return await getFirstLine(file) === indexer_banner
 	}
 
