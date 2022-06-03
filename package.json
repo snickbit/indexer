@@ -1,6 +1,6 @@
 {
 	"name": "@remedyred/indexer",
-	"version": "2.4.1",
+	"version": "2.4.2",
 	"description": "CLI tool for generating index files",
 	"license": "UNLICENSED",
 	"bin": {
