@@ -1,11 +1,11 @@
 import {ask, confirm, fileExists, mkdir, progress, saveFile} from '@snickbit/node-utilities'
 import {arrayUnique} from '@snickbit/utilities'
-import path from 'path'
 import {$out, getExportName, getFirstLine, indexer_banner, makeExport, notAnIndexPredicate, posix} from './helpers'
 import {AppConfig, FileExport, FilesDefinition, IndexDefinition, IndexerConfig, IndexerResult, IndexerResults} from './definitions'
+import path from 'path'
 import fg from 'fast-glob'
 
-export default async function (config: AppConfig): Promise<IndexerResult> {
+export default async function(config: AppConfig): Promise<IndexerResult> {
 	let indexes_map: IndexDefinition[]
 	let indexer_config: IndexerConfig
 	const removeSource = string => string.replace(new RegExp(`^.*?/?${config.source}/?`), '')
@@ -24,7 +24,7 @@ export default async function (config: AppConfig): Promise<IndexerResult> {
 	}
 
 	const file_glob = `${config.source}/**/*`
-	const opts: { ignore?: string[], onlyFiles: boolean } = {onlyFiles: false}
+	const opts: {ignore?: string[]; onlyFiles: boolean} = {onlyFiles: false}
 	if (config.source) {
 		opts.ignore = [config.source]
 	}
@@ -37,7 +37,7 @@ export default async function (config: AppConfig): Promise<IndexerResult> {
 	const skipped_indexes = []
 
 	for (let fp of paths) {
-		if (!notAnIndexPredicate(fp) || !fileExists(fp) || (await getFirstLine(fp) === indexer_banner)) {
+		if (!notAnIndexPredicate(fp) || !fileExists(fp) || await getFirstLine(fp) === indexer_banner) {
 			continue
 		}
 
@@ -48,7 +48,7 @@ export default async function (config: AppConfig): Promise<IndexerResult> {
 
 		for (let indexItem of indexes_map) {
 			for (let fileItem of indexItem.files) {
-				if (fileItem.file === fp || (fileItem.dir && fp.startsWith(fileItem.dir))) {
+				if (fileItem.file === fp || fileItem.dir && fp.startsWith(fileItem.dir)) {
 					indexes.push(indexItem.index)
 				}
 			}
@@ -60,7 +60,7 @@ export default async function (config: AppConfig): Promise<IndexerResult> {
 		}
 
 		if (apply_to_directory) {
-			$out.warn('Using inherited map for ' + fp)
+			$out.warn(`Using inherited map for ${fp}`)
 			$progress.tick()
 			continue
 		}
@@ -73,7 +73,7 @@ export default async function (config: AppConfig): Promise<IndexerResult> {
 		let path_pieces = fp.split('/').slice(0, slice_count).filter(p => !path_parts.includes(p))
 		for (let p of path_pieces) {
 			path_parts.push(p)
-			const index_path = posix.join(...path_parts, 'index.' + index_ext)
+			const index_path = posix.join(...path_parts, `index.${index_ext}`)
 			if (!indexes.includes(index_path) && !skipped_indexes.includes(index_path)) {
 				// this file has not been configured for this index
 				$out.debug(`Index "${index_path}" not configured for "${fp}"`)
@@ -165,9 +165,7 @@ export default async function (config: AppConfig): Promise<IndexerResult> {
 
 				$progress.start()
 
-				const conf: FilesDefinition = {
-					export: export_type
-				}
+				const conf: FilesDefinition = {export: export_type}
 
 				if (apply_to_directory) {
 					conf.dir = fd
@@ -189,11 +187,10 @@ export default async function (config: AppConfig): Promise<IndexerResult> {
 
 	indexes_changed = JSON.stringify(old_indexes_map) !== JSON.stringify(indexes_map)
 
-
 	const filtered_index_map: IndexDefinition[] = indexes_map.filter(im => im.index.startsWith(config.source))
 
 	$progress.start({message: 'Building indexes', total: filtered_index_map.length})
-	$out.debug('Index files: ' + filtered_index_map.length)
+	$out.debug(`Index files: ${filtered_index_map.length}`)
 
 	const results: IndexerResults[] = []
 	for (let index_map of filtered_index_map) {
@@ -237,7 +234,7 @@ export default async function (config: AppConfig): Promise<IndexerResult> {
 				if (export_type === 'skip') {
 					if (!skipped_exports.includes(file_path)) {
 						skipped_exports.push(file_path)
-						$out.verbose('Skipping index for path: ' + file_path)
+						$out.verbose(`Skipping index for path: ${file_path}`)
 					}
 				} else {
 					$out.verbose(`Adding ${export_type} export to ${file_path}`)
@@ -249,7 +246,7 @@ export default async function (config: AppConfig): Promise<IndexerResult> {
 		if (content.length > 0) {
 			if (!config.dryRun) {
 				mkdir(path.dirname(index_map.index), {recursive: true})
-				saveFile(index_map.index, indexer_banner + '\n\n' + content.join('\n') + '\n')
+				saveFile(index_map.index, `${indexer_banner}\n\n${content.join('\n')}\n`)
 			}
 			results.push({
 				type: 'success',
@@ -283,7 +280,6 @@ export default async function (config: AppConfig): Promise<IndexerResult> {
 		return indexer_config
 	} else if (indexes_changed) {
 		return indexes_map
-	} else {
-		return null
 	}
+	return null
 }

@@ -2,7 +2,7 @@ export interface AppConfig {
 	source: string
 	dryRun: boolean
 	rootOnly?: boolean
-	indexer?: IndexerMap | IndexerConfig
+	indexer?: IndexerConfig | IndexerMap
 }
 
 export type IndexerMap = IndexDefinition[] | Record<string, IndexDefinition[]>
@@ -18,13 +18,13 @@ export interface FilesDefinition {
 	dir?: string
 }
 
-export type FileExport = 'default' | 'group' | 'slug' | 'individual' | 'wildcard' | 'skip'
+export type FileExport = 'default' | 'group' | 'individual' | 'skip' | 'slug' | 'wildcard'
 
 export interface IndexerConfig {
-	source?: string | string[]
+	source?: string[] | string
 	output?: string
-	type?: 'default' | 'group' | 'slug' | 'individual' | 'wildcard' | 'skip'
-	casing?: 'keep' | 'camel' | 'pascal' | 'kebab' | 'snake' | 'upper' | 'lower'
+	type?: 'default' | 'group' | 'individual' | 'skip' | 'slug' | 'wildcard'
+	casing?: 'camel' | 'kebab' | 'keep' | 'lower' | 'pascal' | 'snake' | 'upper'
 	include?: string[]
 	ignore?: string[]
 	typescript?: boolean
@@ -35,7 +35,7 @@ export interface IndexerConfig {
 
 export interface IndexerResults {
 	message: string
-	type: 'success' | 'error' | 'warn'
+	type: 'error' | 'success' | 'warn'
 }
 
 export type IndexerResult = IndexDefinition[] | IndexerConfig | null
