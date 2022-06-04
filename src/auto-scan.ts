@@ -1,6 +1,6 @@
 import {ask, confirm, fileExists, mkdir, saveFile} from '@snickbit/node-utilities'
 import {$out, getFirstLine, indexer_banner, posix} from './helpers'
-import {AppConfig, IndexerConfig, IndexerResult, IndexerResults} from './definitions'
+import {AppConfig, DefaultFileExport, IndexConfig, IndexerConfig, IndexerResult, IndexerResults} from './definitions'
 import {camelCase, isArray, JSONPrettify, kebabCase, objectExcept, objectFindKey, safeVarName, slugify, snakeCase} from '@snickbit/utilities'
 import path from 'path'
 import fg from 'fast-glob'
@@ -9,7 +9,7 @@ import picomatch from 'picomatch'
 export default async function(config: AppConfig): Promise<IndexerResult> {
 	const conf = config.indexer as IndexerConfig
 	if (conf.indexes) {
-		const root: Omit<IndexerConfig, 'indexes'> = objectExcept(conf, ['indexes'])
+		const root: Omit<IndexerConfig, 'indexes'> = objectExcept(conf, ['indexes']) as IndexerConfig
 		for (let key in conf.indexes) {
 			conf.indexes[key] = await generateIndexes(config, {...root, ...conf.indexes[key]}) as IndexerConfig
 		}
@@ -23,11 +23,11 @@ export default async function(config: AppConfig): Promise<IndexerResult> {
 
 let _outputs: string[]
 
-function getOutputs(indexerConfig: IndexerConfig) {
+function getOutputs(indexerConfig: IndexerConfig): string[] {
 	if (!_outputs) {
-		const indexes = indexerConfig.indexes || [indexerConfig]
+		const indexes = indexerConfig?.indexes || [indexerConfig]
 
-		_outputs = indexes.map(index => index.output)
+		_outputs = indexes.filter(index => index?.output).map(index => index.output)
 	}
 	return _outputs
 }
@@ -35,7 +35,7 @@ function getOutputs(indexerConfig: IndexerConfig) {
 async function generateIndexes(appConfig: AppConfig, config?: IndexerConfig): Promise<IndexerResult> {
 	let indexer_config: IndexerConfig
 	let conf = (config || appConfig.indexer || {}) as IndexerConfig
-	getOutputs(appConfig)
+	getOutputs(config)
 
 	if (!conf) {
 		conf = {
@@ -82,19 +82,13 @@ async function generateIndexes(appConfig: AppConfig, config?: IndexerConfig): Pr
 		conf.type = 'wildcard'
 	}
 
-	const ignore = [conf.output]
-
-	if (conf.ignore) {
-		ignore.push(...conf.ignore)
-	}
-
 	const content: string[] = []
 	const results: IndexerResults[] = []
 
 	const source = posix.dirname(conf.output)
 	const indexes: Record<string, string[]> = {[source]: []}
 
-	const files = await fg(conf.source, {ignore, onlyFiles: !conf.recursive})
+	const files = await fg(conf.source, {ignore: makeIgnore(conf), onlyFiles: !conf.recursive})
 	if (!files.length) {
 		results.push({
 			type: 'warn',
@@ -133,8 +127,7 @@ async function generateIndexes(appConfig: AppConfig, config?: IndexerConfig): Pr
 
 			if (indexContent.length > 0) {
 				if (!appConfig.dryRun) {
-					mkdir(path.dirname(indexFile), {recursive: true})
-					saveFile(indexFile, `${indexer_banner}\n\n${indexContent.sort().join('\n')}\n`)
+					await saveIndex(conf, indexFile, indexContent)
 				}
 				results.push({
 					type: 'success',
@@ -151,8 +144,7 @@ async function generateIndexes(appConfig: AppConfig, config?: IndexerConfig): Pr
 
 	if (content.length > 0) {
 		if (!appConfig.dryRun) {
-			mkdir(path.dirname(conf.output), {recursive: true})
-			saveFile(conf.output, `${indexer_banner}\n\n${content.sort().join('\n')}\n`)
+			await saveIndex(conf, conf.output, content)
 		}
 		results.push({
 			type: 'success',
@@ -181,17 +173,23 @@ async function generateIndexes(appConfig: AppConfig, config?: IndexerConfig): Pr
 	return indexer_config
 }
 
-function makeExport(conf: IndexerConfig, source: string, file: string) {
-	const override = conf.overrides && objectFindKey(conf.overrides, key => picomatch(key)(file))
-	const export_type = override ? conf.overrides[override] : conf.type
-
+function resolvePath(source: string, file: string): string {
 	const resolvedIndex = posix.resolve(source)
 	const resolvedFile = posix.resolve(file)
-	let file_path = posix.relative(resolvedIndex, resolvedFile).replace(/^(\.\.)?\/?/, './').replace(/\.[jt]s$/, '').replace(/\/index$/, '')
+	let file_path = posix.relative(resolvedIndex, resolvedFile)
+		.replace(/^(\.\.)?\/?/, './')
+		.replace(/\.[jt]s$/, '')
+		.replace(/\/index$/, '')
 	if (file_path === '.') {
 		file_path = './index'
 	}
+	return file_path
+}
 
+function makeExport(conf: IndexerConfig, source: string, file: string) {
+	const override = conf.overrides && objectFindKey(conf.overrides, key => picomatch(key)(file))
+	const export_type = override ? conf.overrides[override] : conf.type
+	const file_path = resolvePath(source, file)
 	const dirname = path.dirname(file)
 	const filename = path.basename(file, path.extname(file))
 
@@ -210,6 +208,75 @@ function makeExport(conf: IndexerConfig, source: string, file: string) {
 		default:
 			return `export {default as ${export_name}} from '${file_path}'`
 	}
+}
+
+async function saveIndex(indexConf: IndexConfig, filePath: string, content: string[]) {
+	mkdir(path.dirname(filePath), {recursive: true})
+
+	content = content.sort()
+
+	if (indexConf.default && indexConf.default.source) {
+		content = await makeDefaultExport(indexConf, content)
+	}
+
+	saveFile(filePath, `${indexer_banner}\n\n${content.join('\n')}\n`)
+}
+
+async function makeDefaultExport(indexConf: IndexConfig, existingContent: string[]): Promise<string[]> {
+	$out.debug('Making default export', indexConf.default.source)
+
+	const conf = indexConf.default
+	const contentImports: string[] = []
+	let defaultExport = ''
+
+	$out.debug('Finding files matching source', {source: indexConf.default.source})
+
+	const exportNames = []
+	const files = Array.isArray(indexConf.default.source) ? await fg(indexConf.default.source, {ignore: makeIgnore(indexConf.default), onlyFiles: true}) : [indexConf.default.source]
+
+	$out.debug('Found files', files)
+	for (const file of files) {
+		const override = conf.overrides && objectFindKey(conf.overrides, key => picomatch(key)(file))
+		const export_type: DefaultFileExport = override ? conf.overrides[override] : conf.type
+		const file_path = resolvePath(path.dirname(indexConf.output), file)
+		const filename = path.basename(file, path.extname(file))
+		let export_name = makeExportName(filename, conf.casing)
+
+		if (export_type === 'slug') {
+			const dirname = path.dirname(file)
+			export_name = safeVarName(slugify(path.join(dirname, filename)))
+			contentImports.push(`import {* as ${export_name}} from '${file_path}'`)
+		} else if (export_type === 'default') {
+			contentImports.push(`import {default as ${export_name}} from '${file_path}'`)
+		} else { // wildcard
+			contentImports.push(`import * as ${export_name} from '${file_path}'`)
+		}
+
+		exportNames.push(export_name)
+	}
+
+	if (Array.isArray(indexConf.default.source)) {
+		defaultExport = `export default { ${exportNames.sort().join(', ')} }`
+	} else {
+		defaultExport = `export default ${exportNames.shift()}`
+	}
+
+	return [
+		...contentImports.sort(),
+		'',
+		...existingContent,
+		'',
+		defaultExport
+	]
+}
+
+function makeIgnore(conf) {
+	const ignore = [conf.output]
+
+	if (conf.ignore) {
+		ignore.push(...conf.ignore)
+	}
+	return ignore.filter(Boolean)
 }
 
 function makeExportName(name: string, casing: IndexerConfig['casing'] = 'keep'): string {

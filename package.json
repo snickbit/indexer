@@ -4,19 +4,19 @@
 	"description": "CLI tool for generating index files",
 	"license": "UNLICENSED",
 	"bin": {
-		"indexer": "./bin/indexer.js"
+		"indexer": "./bin/indexer"
 	},
 	"files": [
 		"bin"
 	],
 	"scripts": {
-		"build": "esbuild --bundle --outfile=bin/indexer.js src/index.ts --target=node12 --platform=node --external:shelljs",
+		"build": "esbuild --bundle --outfile=bin/indexer src/index.ts --target=node12 --platform=node --external:shelljs",
 		"build:meta": "npm run build --metafile",
 		"clean": "shx rm -rf ./bin",
 		"depcheck": "depcheck",
 		"dev": "pnpm run build --sourcemap",
 		"prod": "pnpm run build --minify",
-		"start": "node bin/indexer.js",
+		"start": "node bin/indexer",
 		"watch": "pnpm run dev --watch"
 	},
 	"jest": {

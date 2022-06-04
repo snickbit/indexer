@@ -19,18 +19,33 @@ export interface FilesDefinition {
 }
 
 export type FileExport = 'default' | 'group' | 'individual' | 'skip' | 'slug' | 'wildcard'
+export type DefaultFileExport = 'default' | 'group' | 'slug'
+export type WordCase = 'camel' | 'kebab' | 'keep' | 'lower' | 'pascal' | 'snake' | 'upper'
 
-export interface IndexerConfig {
-	source?: string[] | string
-	output?: string
-	type?: 'default' | 'group' | 'individual' | 'skip' | 'slug' | 'wildcard'
-	casing?: 'camel' | 'kebab' | 'keep' | 'lower' | 'pascal' | 'snake' | 'upper'
+export interface CommonIndexConfig {
+	source: string[] | string
+	casing?: WordCase
 	include?: string[]
 	ignore?: string[]
 	typescript?: boolean
-	indexes?: IndexerConfig[]
-	recursive?: boolean
+}
+
+export interface IndexConfig extends CommonIndexConfig {
+	output: string
+	type: FileExport
+	default?: DefaultIndexConfig
 	overrides?: Record<string, FileExport>
+}
+
+export interface DefaultIndexConfig extends Omit<CommonIndexConfig, 'source'> {
+	source?: string[] | string
+	type: DefaultFileExport
+	overrides?: Record<string, DefaultFileExport>
+}
+
+export interface IndexerConfig extends IndexConfig {
+	recursive?: boolean
+	indexes?: IndexerConfig[]
 }
 
 export interface IndexerResults {
