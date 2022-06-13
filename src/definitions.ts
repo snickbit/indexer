@@ -25,7 +25,6 @@ export type WordCase = 'camel' | 'keep' | 'lower' | 'pascal' | 'snake' | 'upper'
 export interface CommonIndexConfig {
 	source: string[] | string
 	casing?: WordCase
-	include?: string[]
 	ignore?: string[]
 }
 
