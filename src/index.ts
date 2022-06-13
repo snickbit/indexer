@@ -1,15 +1,14 @@
 #!/usr/bin/env node
 import {ask, confirm, fileExists, getFileJson, saveFileJson} from '@snickbit/node-utilities'
 import {lilconfig} from 'lilconfig'
-import {$out, DEFAULT_CONFIG_NAME} from './helpers'
-import {AppConfig} from './definitions'
+import {$out, DEFAULT_CONFIG_NAME} from './common'
+import {AppConfig, IndexerConfig} from './definitions'
+import {objectExcept} from '@snickbit/utilities'
 import cli from '@snickbit/node-cli'
 import packageJson from '../package.json'
-import autoScan from './auto-scan'
-import manualScan from './manual-scan'
+import generateIndexes from './generate-indexes'
 
-cli()
-	.name('@snickbit/indexer')
+cli().name('@snickbit/indexer')
 	.version(packageJson.version)
 	.banner('Generating Indexes')
 	.includeWorkingPackage()
@@ -30,7 +29,8 @@ cli()
 			describe: 'Dry run, do not write to disk'
 		}
 	})
-	.run().then(async argv => {
+	.run()
+	.then(async argv => {
 		let config: AppConfig = {
 			source: argv.source,
 			dryRun: argv.dryRun
@@ -52,11 +52,15 @@ cli()
 		let update_config = false
 
 		if (config.indexer || config.source) {
-		// Use deprecated manual scan if config is an array
-			if (config.indexer && Array.isArray(config.indexer)) {
-				config.indexer = await manualScan(config)
+			const conf = config.indexer as IndexerConfig
+			if (conf.indexes) {
+				const root: Omit<IndexerConfig, 'indexes'> = objectExcept(conf, ['indexes']) as IndexerConfig
+				for (let key in conf.indexes) {
+					conf.indexes[key] = await generateIndexes(config, {...root, ...conf.indexes[key]}) as IndexerConfig
+				}
+				config.indexer = conf
 			} else {
-				config.indexer = await autoScan(config)
+				config.indexer = await generateIndexes(config)
 			}
 		} else {
 			$out.fatal('No configuration found and no source directory specified')

@@ -1,38 +1,14 @@
 import {ask, confirm, fileExists, mkdir, saveFile} from '@snickbit/node-utilities'
-import {$out, getFirstLine, indexer_banner, posix} from './helpers'
+import {$out, indexer_banner, posix} from './common'
 import {AppConfig, DefaultFileExport, IndexConfig, IndexerConfig, IndexerResult, IndexerResults} from './definitions'
-import {camelCase, isArray, JSONPrettify, kebabCase, objectExcept, objectFindKey, safeVarName, slugify, snakeCase} from '@snickbit/utilities'
+import {camelCase, isArray, JSONPrettify, kebabCase, objectFindKey, safeVarName, slugify, snakeCase} from '@snickbit/utilities'
 import path from 'path'
 import fg from 'fast-glob'
 import picomatch from 'picomatch'
+import fs from 'fs'
+import readline from 'readline'
 
-export default async function(config: AppConfig): Promise<IndexerResult> {
-	const conf = config.indexer as IndexerConfig
-	if (conf.indexes) {
-		const root: Omit<IndexerConfig, 'indexes'> = objectExcept(conf, ['indexes']) as IndexerConfig
-		for (let key in conf.indexes) {
-			conf.indexes[key] = await generateIndexes(config, {...root, ...conf.indexes[key]}) as IndexerConfig
-		}
-		config.indexer = conf
-	} else {
-		config.indexer = await generateIndexes(config)
-	}
-
-	return config.indexer
-}
-
-let _outputs: string[]
-
-function getOutputs(indexerConfig: IndexerConfig): string[] {
-	if (!_outputs) {
-		const indexes = indexerConfig?.indexes || [indexerConfig]
-
-		_outputs = indexes.filter(index => index?.output).map(index => index.output)
-	}
-	return _outputs
-}
-
-async function generateIndexes(appConfig: AppConfig, config?: IndexerConfig): Promise<IndexerResult> {
+export default async function(appConfig: AppConfig, config?: IndexerConfig): Promise<IndexerResult> {
 	let indexer_config: IndexerConfig
 	let conf = (config || appConfig.indexer || {}) as IndexerConfig
 	getOutputs(config)
@@ -173,13 +149,24 @@ async function generateIndexes(appConfig: AppConfig, config?: IndexerConfig): Pr
 	return indexer_config
 }
 
+let _outputs: string[]
+
+function getOutputs(indexerConfig: IndexerConfig): string[] {
+	if (!_outputs) {
+		const indexes = indexerConfig?.indexes || [indexerConfig]
+
+		_outputs = indexes.filter(index => index?.output).map(index => index.output)
+	}
+	return _outputs
+}
+
 function resolvePath(source: string, file: string): string {
 	const resolvedIndex = posix.resolve(source)
 	const resolvedFile = posix.resolve(file)
 	let file_path = posix.relative(resolvedIndex, resolvedFile)
-		.replace(/^(\.\.)?\/?/, './')
-		.replace(/\.[jt]s$/, '')
-		.replace(/\/index$/, '')
+	                     .replace(/^(\.\.)?\/?/, './')
+	                     .replace(/\.[jt]s$/, '')
+	                     .replace(/\/index$/, '')
 	if (file_path === '.') {
 		file_path = './index'
 	}
@@ -314,4 +301,17 @@ async function shouldIgnore(conf: IndexerConfig, file: string): Promise<boolean>
 	}
 
 	return false
+}
+
+async function getFirstLine(pathToFile) {
+	const readable = fs.createReadStream(pathToFile)
+	const reader = readline.createInterface({input: readable})
+	const line = await new Promise(resolve => {
+		reader.once('line', line => {
+			reader.close()
+			resolve(line)
+		})
+	})
+	readable.close()
+	return line
 }
