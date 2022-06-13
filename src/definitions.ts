@@ -20,7 +20,7 @@ export interface FilesDefinition {
 
 export type FileExport = 'default' | 'group' | 'individual' | 'skip' | 'slug' | 'wildcard'
 export type DefaultFileExport = 'default' | 'group' | 'slug'
-export type WordCase = 'camel' | 'kebab' | 'keep' | 'lower' | 'pascal' | 'snake' | 'upper'
+export type WordCase = 'camel' | 'keep' | 'lower' | 'pascal' | 'snake' | 'upper'
 
 export interface CommonIndexConfig {
 	source: string[] | string

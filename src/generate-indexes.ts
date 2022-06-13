@@ -1,7 +1,7 @@
 import {ask, confirm, fileExists, mkdir, saveFile} from '@snickbit/node-utilities'
 import {$out, indexer_banner, posix} from './common'
 import {AppConfig, DefaultFileExport, IndexConfig, IndexerConfig, IndexerResult, IndexerResults} from './definitions'
-import {camelCase, isArray, JSONPrettify, kebabCase, objectFindKey, safeVarName, slugify, snakeCase} from '@snickbit/utilities'
+import {camelCase, isArray, JSONPrettify, objectFindKey, safeVarName, slugify, snakeCase} from '@snickbit/utilities'
 import path from 'path'
 import fg from 'fast-glob'
 import picomatch from 'picomatch'
@@ -272,8 +272,6 @@ function makeExportName(name: string, casing: IndexerConfig['casing'] = 'keep'):
 			return camelCase(name)
 		case 'pascal':
 			return name.charAt(0).toUpperCase() + camelCase(name.slice(1))
-		case 'kebab':
-			return kebabCase(name)
 		case 'snake':
 			return snakeCase(name)
 		case 'upper':
