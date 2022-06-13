@@ -27,7 +27,6 @@ export interface CommonIndexConfig {
 	casing?: WordCase
 	include?: string[]
 	ignore?: string[]
-	typescript?: boolean
 }
 
 export interface IndexConfig extends CommonIndexConfig {

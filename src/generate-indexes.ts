@@ -1,4 +1,4 @@
-import {ask, confirm, fileExists, mkdir, saveFile} from '@snickbit/node-utilities'
+import {ask, fileExists, mkdir, saveFile} from '@snickbit/node-utilities'
 import {$out, indexer_banner, posix} from './common'
 import {AppConfig, DefaultFileExport, IndexConfig, IndexerConfig, IndexerResult, IndexerResults} from './definitions'
 import {camelCase, isArray, JSONPrettify, objectFindKey, safeVarName, slugify, snakeCase} from '@snickbit/utilities'
@@ -41,8 +41,7 @@ export default async function(appConfig: AppConfig, config?: IndexerConfig): Pro
 						value: 'slug'
 					}
 				]
-			}),
-			typescript: await confirm('Use typescript?', true)
+			})
 		} as IndexerConfig
 
 		indexer_config = conf
