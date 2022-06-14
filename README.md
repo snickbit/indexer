@@ -18,6 +18,16 @@ npm install -g @snickbit/indexer
 
 ## Usage
 
+### CLI Usage
+
+
+```bash
+indexer [source] [--config|c=config/file/path.json] [--dry-run|d]
+```
+
+Once you have a config file, you can use the CLI to generate index files just by running `indexer` in the same directory as the config file.
+
+
 ### Config Options
 
 Indexer is configured by a "indexer.config.json" file or the "indexer" package.json property.
@@ -51,7 +61,7 @@ The index file to generate.
 #### type
 
 Type: string
-Default: 'default'
+Default: 'wildcard'
 
 The type of exports to generate in the index file.
 
