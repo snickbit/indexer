@@ -14,10 +14,6 @@ cli().name('@snickbit/indexer')
 	.includeWorkingPackage()
 	.args({source: {description: 'The source directory to index'}})
 	.options({
-		single: {
-			alias: 's',
-			describe: 'Only create index in root directory'
-		},
 		config: {
 			alias: 'c',
 			describe: 'Path to config file',
