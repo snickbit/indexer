@@ -47,7 +47,7 @@ export default async function(appConfig: AppConfig, config?: IndexerConfig): Pro
 		indexer_config = conf
 	}
 
-	if (!conf.source || !conf.indexes) {
+	if (!conf.source && !conf.indexes) {
 		$out.fatal('Source glob pattern or indexes is required')
 	}
 	if (!conf.output) {
