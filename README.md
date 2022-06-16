@@ -49,6 +49,8 @@ Example: "src/**/*.{js,jsx,ts,tsx}"
 
 Glob pattern(s) to match the source files.
 
+**Note:** Generated index files are automatically excluded from the glob pattern. If you want to include a generated index in a parent index, use the `include` property.
+
 #### output
 
 Type: string
@@ -56,7 +58,7 @@ Example: "src/index.ts"
 
 The index file to generate.
 
-**Note:** It's recommended to output to a file inside the source directory, so that the index file can be committed and/or transpiled by any build tools.
+**Note:** It's recommended to output to a file inside the source directory, so that the index file can be committed and/or transpiled by any build tools. 
 
 #### type
 
@@ -96,6 +98,12 @@ Options:
 Type: string[] \
 
 Array of glob patterns to ignore.
+
+#### include
+
+Type: string[] \
+
+Array of glob patterns to explicitly include. Overrides the `ignore` option.
 
 Example:
 
