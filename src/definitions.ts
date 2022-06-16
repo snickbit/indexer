@@ -26,6 +26,7 @@ export interface CommonIndexConfig {
 	source: string[] | string
 	casing?: WordCase
 	ignore?: string[]
+	include?: string[]
 }
 
 export interface IndexConfig extends CommonIndexConfig {

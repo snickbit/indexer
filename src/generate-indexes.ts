@@ -284,12 +284,14 @@ function makeExportName(name: string, casing: IndexerConfig['casing'] = 'keep'):
 }
 
 async function shouldIgnore(conf: IndexerConfig, file: string): Promise<boolean> {
-	if (file === conf.output) {
-		return true
-	}
 	if (!fileExists(file)) {
 		return true
 	}
+
+	if (isArray(conf.include) && conf.include.some(include => include && picomatch(include)(file))) {
+		return false
+	}
+
 	if (isArray(conf.ignore) && conf.ignore.some(ignore => ignore && picomatch(ignore)(file))) {
 		return true
 	}
@@ -298,7 +300,7 @@ async function shouldIgnore(conf: IndexerConfig, file: string): Promise<boolean>
 		return await getFirstLine(file) === indexer_banner
 	}
 
-	return false
+	return file === conf.output
 }
 
 async function getFirstLine(pathToFile) {
