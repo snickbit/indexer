@@ -1,5 +1,15 @@
 # @snickbit/indexer Changelog
 
+## 2.5.4
+
+### Patch Changes
+
+- [ff7186f](https://github.com/snickbit/indexer/commit/ff7186f) **docs**:  update
+- [c4e1114](https://github.com/snickbit/indexer/commit/c4e1114) **fix**:  use parsed file path for export name instead of original file path
+- [6e9da87](https://github.com/snickbit/indexer/commit/6e9da87) **fix**:  add explicit inclusion with "include" config option
+- [bebc85d](https://github.com/snickbit/indexer/commit/bebc85d) **fix**:  add debug output
+- [c6b8f02](https://github.com/snickbit/indexer/commit/c6b8f02) **fix**:  swap logical operator
+
 ## 2.5.3
 
 ### Patch Changes
