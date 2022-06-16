@@ -73,6 +73,7 @@ export default async function(appConfig: AppConfig, config?: IndexerConfig): Pro
 
 	for (let file of files) {
 		if (await shouldIgnore(conf, file)) {
+			$out.warn(`Ignoring file: ${file}`)
 			continue
 		}
 
