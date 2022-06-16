@@ -178,7 +178,7 @@ function makeExport(conf: IndexerConfig, source: string, file: string) {
 	const export_type = override ? conf.overrides[override] : conf.type
 	const file_path = resolvePath(source, file)
 	const dirname = path.dirname(file)
-	const filename = path.basename(file, path.extname(file))
+	const filename = path.basename(file_path, path.extname(file))
 
 	if (export_type === 'slug') {
 		const slug = safeVarName(slugify(path.join(dirname, filename)))
