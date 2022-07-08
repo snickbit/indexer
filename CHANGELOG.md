@@ -1,5 +1,12 @@
 # @snickbit/indexer Changelog
 
+## 2.5.5
+
+### Patch Changes
+
+- [caf4663](https://github.com/snickbit/indexer/commit/caf4663) **chore**:  bump dependencies
+- [c3f6188](https://github.com/snickbit/indexer/commit/c3f6188) **chore**:  bump dependencies
+
 ## 2.5.4
 
 ### Patch Changes
