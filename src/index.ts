@@ -49,7 +49,7 @@ cli().name('@snickbit/indexer')
 
 		if (config.indexer || config.source) {
 			const conf = config.indexer as IndexerConfig
-			if (conf.indexes) {
+			if (conf?.indexes) {
 				const root: Omit<IndexerConfig, 'indexes'> = objectExcept(conf, ['indexes']) as IndexerConfig
 				for (let key in conf.indexes) {
 					conf.indexes[key] = await generateIndexes(config, {...root, ...conf.indexes[key]}) as IndexerConfig
