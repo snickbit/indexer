@@ -1,6 +1,6 @@
 import {ask, fileExists, mkdir, saveFile} from '@snickbit/node-utilities'
 import {$out, indexer_banner, posix} from './common'
-import {AppConfig, DefaultFileExport, IndexConfig, IndexerConfig, IndexerResult, IndexerResults} from './definitions'
+import {AppConfig, DefaultFileExport, IndexConfig, IndexerConfig, IndexerResults} from './definitions'
 import {camelCase, isArray, JSONPrettify, objectFindKey, safeVarName, slugify, snakeCase} from '@snickbit/utilities'
 import path from 'path'
 import fg from 'fast-glob'
@@ -8,7 +8,7 @@ import picomatch from 'picomatch'
 import fs from 'fs'
 import readline from 'readline'
 
-export default async function(appConfig: AppConfig, config?: IndexerConfig): Promise<IndexerResult> {
+export default async function(appConfig: AppConfig, config?: IndexerConfig): Promise<IndexerConfig> {
 	let indexer_config: IndexerConfig
 	let conf: IndexerConfig
 
