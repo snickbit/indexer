@@ -12,7 +12,10 @@ cli().name('@snickbit/indexer')
 	.version(packageJson.version)
 	.banner('Generating Indexes')
 	.includeWorkingPackage()
-	.args({source: {description: 'The source directory to index'}})
+	.args({
+		source: {description: 'The source directory to index (only for initial run)'},
+		output: {describe: 'Path to output file (only for initial run)'}
+	})
 	.options({
 		config: {
 			alias: 'c',
@@ -29,7 +32,12 @@ cli().name('@snickbit/indexer')
 	.then(async argv => {
 		let config: AppConfig = {
 			source: argv.source,
+			output: argv.output,
 			dryRun: argv.dryRun
+		}
+
+		if (config.source && !config.source.includes('*')) {
+			config.source = `${config.source}/**/*`
 		}
 
 		let configPath
@@ -49,7 +57,7 @@ cli().name('@snickbit/indexer')
 
 		if (config.indexer || config.source) {
 			const conf = config.indexer as IndexerConfig
-			if (conf.indexes) {
+			if (conf?.indexes) {
 				const root: Omit<IndexerConfig, 'indexes'> = objectExcept(conf, ['indexes']) as IndexerConfig
 				for (let key in conf.indexes) {
 					conf.indexes[key] = await generateIndexes(config, {...root, ...conf.indexes[key]}) as IndexerConfig

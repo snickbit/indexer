@@ -1,21 +1,9 @@
 export interface AppConfig {
 	source: string
+	output?: string
 	dryRun: boolean
 	rootOnly?: boolean
-	indexer?: IndexerConfig | IndexerMap
-}
-
-export type IndexerMap = IndexDefinition[] | Record<string, IndexDefinition[]>
-
-export interface IndexDefinition {
-	index: string
-	files: FilesDefinition[]
-}
-
-export interface FilesDefinition {
-	export: FileExport
-	file?: string
-	dir?: string
+	indexer?: IndexerConfig
 }
 
 export type FileExport = 'default' | 'group' | 'individual' | 'skip' | 'slug' | 'wildcard'
@@ -51,5 +39,3 @@ export interface IndexerResults {
 	message: string
 	type: 'error' | 'success' | 'warn'
 }
-
-export type IndexerResult = IndexDefinition[] | IndexerConfig | null

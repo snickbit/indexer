@@ -1,6 +1,6 @@
 import {ask, fileExists, mkdir, saveFile} from '@snickbit/node-utilities'
 import {$out, indexer_banner, posix} from './common'
-import {AppConfig, DefaultFileExport, IndexConfig, IndexerConfig, IndexerResult, IndexerResults} from './definitions'
+import {AppConfig, DefaultFileExport, IndexConfig, IndexerConfig, IndexerResults} from './definitions'
 import {camelCase, isArray, JSONPrettify, objectFindKey, safeVarName, slugify, snakeCase} from '@snickbit/utilities'
 import path from 'path'
 import fg from 'fast-glob'
@@ -8,44 +8,45 @@ import picomatch from 'picomatch'
 import fs from 'fs'
 import readline from 'readline'
 
-export default async function(appConfig: AppConfig, config?: IndexerConfig): Promise<IndexerResult> {
+export default async function(appConfig: AppConfig, config?: IndexerConfig): Promise<IndexerConfig> {
 	let indexer_config: IndexerConfig
-	let conf = (config || appConfig.indexer || {}) as IndexerConfig
-	getOutputs(config)
+	let conf: IndexerConfig
 
-	if (!conf) {
-		conf = {
-			source: await ask('Source glob pattern:', {initial: 'src/**/*.ts'}),
-			output: await ask('Output file:', {initial: 'src/index.ts'}),
-			type: await ask('Export type:', {
-				type: 'select',
-				choices: [
-					{
-						title: `Automatic"`,
-						value: 'auto'
-					},
-					{
-						title: `Wildcard export "export * from './path/to/filename'"`,
-						value: 'wildcard'
-					},
-					{
-						title: `Default export "export {default as filename} from './path/to/filename'",`,
-						value: 'default'
-					},
-					{
-						title: `Group export "export * as filename from './path/to/filename'"`,
-						value: 'group'
-					},
-					{
-						title: `Slug export "export * as path_to_filename from './path/to/filename'"`,
-						value: 'slug'
-					}
-				]
-			})
-		} as IndexerConfig
+	if (config || appConfig.indexer) {
+		conf = config || appConfig.indexer as IndexerConfig
+	} else {
+		const source = appConfig.source || await ask('Source glob pattern:', {initial: 'src/**/*.ts'})
+		const output = appConfig.output || await ask('Output file:', {initial: source.replace(/(\*+\/?)+/, 'index.ts')})
+		const type = await ask('Export type:', {
+			type: 'select',
+			choices: [
+				{
+					title: `Wildcard export "export * from './path/to/filename'"`,
+					value: 'wildcard'
+				},
+				{
+					title: `Default export "export {default as filename} from './path/to/filename'",`,
+					value: 'default'
+				},
+				{
+					title: `Group export "export * as filename from './path/to/filename'"`,
+					value: 'group'
+				},
+				{
+					title: `Slug export "export * as path_to_filename from './path/to/filename'"`,
+					value: 'slug'
+				}
+			]
+		})
 
-		indexer_config = conf
+		indexer_config = conf = {
+			source,
+			output,
+			type
+		}
 	}
+
+	getOutputs(config)
 
 	if (!conf.source && !conf.indexes) {
 		$out.fatal('Source glob pattern or indexes is required')
