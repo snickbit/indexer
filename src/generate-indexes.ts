@@ -16,7 +16,7 @@ export default async function(appConfig: AppConfig, config?: IndexerConfig): Pro
 		conf = config || appConfig.indexer as IndexerConfig
 	} else {
 		const source = appConfig.source || await ask('Source glob pattern:', {initial: 'src/**/*.ts'})
-		const output = await ask('Output file:', {initial: 'src/index.ts'})
+		const output = await ask('Output file:', {initial: source.replace(/(\*+\/?)+/, 'index.ts')})
 		const type = await ask('Export type:', {
 			type: 'select',
 			choices: [
