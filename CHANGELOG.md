@@ -1,5 +1,15 @@
 # @snickbit/indexer Changelog
 
+## 2.5.6
+
+### Patch Changes
+
+- [abed335](https://github.com/snickbit/indexer/commit/abed335) **fix**:  add argument for output, adjusted descriptions to clarify that source and output are only for initial run
+- [f07dda3](https://github.com/snickbit/indexer/commit/f07dda3) **fix**:  incorrect return type, remove unnecessary type definitions
+- [d5abb7c](https://github.com/snickbit/indexer/commit/d5abb7c) **fix**:  replace glob in output input suggestion
+- [3b0f9f2](https://github.com/snickbit/indexer/commit/3b0f9f2) **fix**:  ensure source argument is a glob
+- [96bf455](https://github.com/snickbit/indexer/commit/96bf455) **fix**:  allow indexer to run by only providing a source argument
+
 ## 2.5.5
 
 ### Patch Changes

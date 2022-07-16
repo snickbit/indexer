@@ -1,6 +1,6 @@
 {
 	"name": "@snickbit/indexer",
-	"version": "2.5.5",
+	"version": "2.5.6",
 	"description": "Simple cli tool to generate index files for almost any project.",
 	"license": "MIT",
 	"bin": {
