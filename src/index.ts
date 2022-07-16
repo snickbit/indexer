@@ -12,7 +12,10 @@ cli().name('@snickbit/indexer')
 	.version(packageJson.version)
 	.banner('Generating Indexes')
 	.includeWorkingPackage()
-	.args({source: {description: 'The source directory to index'}})
+	.args({
+		source: {description: 'The source directory to index (only for initial run)'},
+		output: {describe: 'Path to output file (only for initial run)'}
+	})
 	.options({
 		config: {
 			alias: 'c',
@@ -29,6 +32,7 @@ cli().name('@snickbit/indexer')
 	.then(async argv => {
 		let config: AppConfig = {
 			source: argv.source,
+			output: argv.output,
 			dryRun: argv.dryRun
 		}
 

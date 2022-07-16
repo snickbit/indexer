@@ -1,5 +1,6 @@
 export interface AppConfig {
 	source: string
+	output?: string
 	dryRun: boolean
 	rootOnly?: boolean
 	indexer?: IndexerConfig
