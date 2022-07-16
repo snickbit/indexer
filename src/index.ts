@@ -32,6 +32,10 @@ cli().name('@snickbit/indexer')
 			dryRun: argv.dryRun
 		}
 
+		if (config.source && !config.source.includes('*')) {
+			config.source = `${config.source}/**/*`
+		}
+
 		let configPath
 
 		if (argv.config && argv.config !== 'false' && fileExists(argv.config)) {
