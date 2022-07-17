@@ -53,8 +53,6 @@ cli().name('@snickbit/indexer')
 			}
 		}
 
-		let update_config = false
-
 		if (config.indexer || config.source) {
 			const conf = config.indexer as IndexerConfig
 			if (conf?.indexes) {
@@ -70,7 +68,7 @@ cli().name('@snickbit/indexer')
 			$out.fatal('No configuration found and no source directory specified')
 		}
 
-		if (update_config && !config.dryRun && await confirm('Do you want to save the updated configuration?')) {
+		if (!config.dryRun && !configPath && await confirm('Do you want to save the configuration?')) {
 			const save_path = configPath || await ask('Path to save config file?', DEFAULT_CONFIG_NAME)
 			if (!save_path) {
 				$out.fatal('No path provided')
