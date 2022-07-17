@@ -1,5 +1,11 @@
 # @snickbit/indexer Changelog
 
+## 2.5.7
+
+### Patch Changes
+
+- [2f9f291](https://github.com/snickbit/indexer/commit/2f9f291) **fix**:  re-enable saving configuration on init
+
 ## 2.5.6
 
 ### Patch Changes
